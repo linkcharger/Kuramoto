@@ -3,7 +3,7 @@ import math
 import random as rand
 import numpy as np
 import matplotlib.pyplot as plt
-from multiprocessing import Pool, cpu_count
+
 
 
 T = 50        # 100
@@ -189,14 +189,12 @@ class OscPopulation:
 
 
 # %% task 2 %%
-p = Pool(processes=cpu_count())
 pop2 = OscPopulation()
-p.map(pop2.run('t-vs-r'), range(cpu_count()))
-p.terminate()
+pop2.run('t-vs-r')
+
 
 
 
 # %% task 1 %%
-p = Pool(processes=cpu_count())
 pop1 = OscPopulation()
-p.map(pop1.run('K-vs-r'), range(cpu_count()))
+pop1.run('K-vs-r')
