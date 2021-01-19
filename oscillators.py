@@ -1,3 +1,4 @@
+# %% setup
 import math
 import random as rand
 import numpy as np
@@ -6,7 +7,15 @@ import matplotlib.pyplot as plt
 
 T = 50          # 100
 h = 0.01
-N = 10           # 1000
+N = 10         # 1000
+
+
+numberOfPoints = int(T/h)
+t_range = [round(i * h, 4) for i in range(1, numberOfPoints)]
+int_t_range = [round(t_range[i] / h) for i in range(numberOfPoints-1)]
+
+# t = 0 is setup -> in first loop t = 1, will grab t-1 = 0 in sin()!
+
 
 
 
@@ -14,7 +23,8 @@ class Oscillator:
 
     def __init__(self, initPhase, natFreq):
         self.omega = natFreq
-        self.theta = [initPhase]
+        self.theta = [None] * len(int_t_range)
+        self.theta[0] = initPhase
 
 
 
@@ -26,25 +36,39 @@ class OscPopulation:
         self.list_os = []
 
         for n in range(N):
-            initPhase = rand.uniform(0, 2 * math.pi)
+            initPhase = rand.uniform(0, math.tau)
             natFreq = rand.normalvariate(0,1)
 
             self.list_os.append(Oscillator(initPhase, natFreq))
-            print("oscillator ", n, " created")
+        print("oscillators created")
 
 
 
     ############ calculate r ############
-    def calc_r(self):                                       
+    def calc_r(self,t):                                       
         
+        ###### one way to do it #######
         # complex sum of all phases 
+        # realSum = 0 
+        # imaginarySum = 0
+        # for n in range(N): 
+        #     realSum += math.cos(self.list_os[n].theta[-1])
+        #     imaginarySum += math.sin(self.list_os[n].theta[-1])
+        
+        # realSum = realSum/N 
+        # imaginarySum = imaginarySum/N
+        # r = math.sqrt(realSum * realSum + imaginarySum * imaginarySum)
+
+
+        ###### another way to do it #######
         sum = 0 + 0j
         for n in range(N):
-            sum += math.exp(1j * self.list_os[n].theta[-1])                             # [-1] gives last element in list
+            sum += math.e**(1j * self.list_os[n].theta[t])                             
+        sum = sum / N 
 
-        sum = 1/N * sum
-
+        # r = math.sqrt(sum.real**2 + sum.imag**2)
         r = abs(sum)
+        
 
         return r
 
@@ -55,17 +79,20 @@ class OscPopulation:
 
         for n in range(N):
 
-            # calculate sum for ONE oscillator n
+            # calculate differential sum for ONE oscillator n for time t
             sum = 0
             for j in range(N):
-                sum += math.sin(self.list_os[j].theta[t-1] - self.list_os[n].theta[t-1])            # radians?
+                # print(self.list_os[j].theta[t-1], ' ', self.list_os[n].theta[t-1])
+                sum += math.sin(self.list_os[j].theta[t-1] - self.list_os[n].theta[t-1])                  
 
-            # theta_dot_t for oscillator n
-            theta_dot_t = self.list_os[n].omega + K * sum
+            # theta_dot_t for oscillator n 
+            theta_dot_t = self.list_os[n].omega + K/N * sum
         
-            # new theta for oscillator n
+            # new theta for oscillator n -> euler step
             theta_t = self.list_os[n].theta[t-1] + h * theta_dot_t
-            self.list_os[n].theta.append(theta_t)                                      # going down list of objects, pick object, dial into theta list, append
+
+            # going down list of objects, pick object, dial into theta list, append
+            self.list_os[n].theta[t] = theta_t
 
 
 
@@ -73,61 +100,86 @@ class OscPopulation:
 
 
     def run(self, mode):
-        rList= []
+        
 
-        ############################################
+        ####################################################################################################################################
         if mode == 'K-vs-r':
+            r_critList= []
 
-            for K in range(0, 5, .5):  
+            K_range = np.linspace(0, 15, 20)                             # from 0 to 5, give me 20 points total, including endpoint = 5
+            for K in K_range:  
 
-                for t in range(0, T, h):
-                    
+                for t in int_t_range:
                     self.stepAll(t, K)
 
-                r_crit = self.calc_r()
-                rList.append(r_crit)
-
+                r_crit = self.calc_r(t)
+                r_critList.append(r_crit)
+                print('K = ' + str(round(K,3)) + ' | r_crit = ' + str(round(r_crit, 3)))
+                
 
 
             # execute at the very end only
-            plt.plot(range(0, 5, .5), rList, 'ko')
+            plt.figure(figsize = (10,6))
+            plt.plot(K_range, r_critList, 'ko')
             plt.title('Bifurcation diagram')
             plt.xlabel('coupling strength K')
             plt.ylabel('coherence r')
-            plt.savefig('K-vs-r__K-' + K + '.png', dpi = 200, bbox_inches = 'tight')
+            plt.savefig('K-vs-r_K-' + '_N' + str(N) + '_T' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+            plt.show()
 
 
 
-        #####################################
+        ####################################################################################################################################
         if mode == 't-vs-r':
+            rList = [[], [], []]
+            
             for K in [1,2]:  
 
-                for t in range(0, T, h):   
+                for t in int_t_range:  
+                    # status
+                    if t % 1000 == 0: print(t) 
+
+
                     # step all oscillators forward INTO timeperiod t
                     self.stepAll(t,K)
 
                     # calculate the population's coherence at each time step
-                    r = self.calc_r()
-                    rList.append(r)
+                    r = self.calc_r(t)
+                    rList[K].append(r)
+                
+                    
 
+            # graphing
+            plt.figure(figsize = (10,12))
 
-                # execute for both runs, individually
-                plt.plot(range(0, T, h), rList, 'ko')
-                plt.title('Evolution of r, K = ' + K)
-                plt.xlabel('time t')
-                plt.ylabel('coherence r')
-                plt.savefig('t-vs-r__K-' + K + '.png', dpi = 200, bbox_inches = 'tight')
+            plt.subplot(2, 1, 1)                                        # 2 rows, 1 column; this is the first
+            plt.plot(t_range, rList[1], 'k.', label = 'K = 1')
+            plt.legend()
+            plt.subplot(2, 1, 2)                                        # 2 rows, 1 column; this is the second
+            plt.plot(t_range, rList[2], 'c.', label = 'K = 2')
+            plt.legend()
 
-
-
+            plt.title('Evolution of r')
+            plt.xlabel('time t')
+            plt.ylabel('coherence r')
+            plt.savefig('t-vs-r_K-' + '_N' + str(N) + '_T' + str(T) +'.pdf', dpi = 200, bbox_inches = 'tight')
+            plt.show()
 
 
 
 
 ############################################ execute ############################################
-population1 = OscPopulation()
-population1.run('K-vs-r')
 
 
-population2 = OscPopulation()
-population2.run('t-vs-r')
+
+# %% task 2
+pop2 = OscPopulation()
+pop2.run('t-vs-r')
+
+
+# %% task 1
+pop1 = OscPopulation()
+pop1.run('K-vs-r')
+
+
+# %%
