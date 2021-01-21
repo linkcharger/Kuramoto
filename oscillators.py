@@ -56,7 +56,6 @@ class OscPopulation:
             self.list_os[n].currentTheta = initPhase
             # dont touch omegas
 
-        print('## thetas changed ##')
 
     def changeOmegas(self):
         for n in range(N):
@@ -66,7 +65,7 @@ class OscPopulation:
             self.list_os[n].omega = omega
             # dont touch thetas
 
-        print('## omegas changed ##')
+        
 
 
 
@@ -103,25 +102,21 @@ class OscPopulation:
     # step FOR time t -> use t-1 ####################################
     def stepAll(self, K):
         
-        # step through time -> hand over value
-        for n in range(N):
+        for n in range(N):                                                                  # step through time -> hand over value
             self.list_os[n].lastTheta = self.list_os[n].currentTheta
 
         # calculate new thetas
         for n in range(N):
-            # calculate differential sum for ONE oscillator n for time t
+            
             sum = 0
-            for j in range(N):
+            for j in range(N):                                                              # calculate differential sum for ONE oscillator n for time t
                 sum += math.sin(self.list_os[j].lastTheta - self.list_os[n].lastTheta)                  
 
-            # theta_dot_t for oscillator n 
-            theta_dot_t = self.list_os[n].omega + K/N * sum
-        
-            # new theta for oscillator n -> euler step
-            theta_t = self.list_os[n].lastTheta + dt * theta_dot_t
+            theta_dot_t = self.list_os[n].omega + K/N * sum                                 # theta_dot_t for oscillator n
+            
+            theta_t = self.list_os[n].lastTheta + dt * theta_dot_t                          # new theta for oscillator n -> euler step
 
-            # going down list of objects, pick object, dial into theta list, append
-            self.list_os[n].currentTheta = theta_t
+            self.list_os[n].currentTheta = theta_t                                          # going down list of objects, pick object, dial into theta list, append
 
 
 
@@ -130,8 +125,6 @@ class OscPopulation:
 
     def run(self, mode, run = 0):
         
-
-        ####################################################################################################################################
         if mode == 'K-vs-r':
             r_critList= []
                             
@@ -144,29 +137,15 @@ class OscPopulation:
                 r_critList.append(r_crit)
                 print('K = ' + str(round(K,3)) + ' | r_crit = ' + str(round(r_crit, 3)))
                 
-
-
-            # execute at the very end only
-            plt.figure(figsize = (10,6))
-            plt.title('System state diagram')
-            plt.xlim(0, 4)
-            plt.plot(K_range, r_critList, 'ko')
-            plt.xlabel('coupling strength K')
-            plt.ylabel('coherence r')
-            plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
-            plt.show()
+            return r_critList
 
 
 
-        ####################################################################################################################################
         if mode == 't-vs-r':
-
-            # single run
-            if run == 0:
-
-                rList = [[], [], []]
+                rList = []
                 
-                for K in [1,2]:  
+                for K in K_range:  
+                    rList.append([])
 
                     for t in t_range:
                         # status
@@ -182,63 +161,22 @@ class OscPopulation:
                     
                     print('###### K =', K, 'done #####')
                         
-
-                ### graphing ###
-                plt.figure(figsize = (10,6))
-                plt.title('Evolution of r')
-                plt.plot(t_range, rList[1], 'k', label = 'K = 1')
-                plt.plot(t_range, rList[2], 'c', label = 'K = 2')
-                plt.legend()
+                return rList
                 
-                plt.xlabel('time t')
-                plt.ylabel('coherence r')
-                plt.savefig('graphics/t-vs-r_' + 'omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
-                plt.show()
 
 
-            # repeated runs -> K = 1
-            else:
-                K = 1  
-                rList = []
-                
-                for t in t_range:
-                    # status
-                    if t % 10 == 0: print('t =', t, 'done') 
-
-                    # step all oscillators forward INTO timeperiod t
-                    self.stepAll(K)
-
-                    # calculate the population's coherence at each time step
-                    r = self.calc_r()
-                    rList.append(r)
-                    
                 
                         
 
-                ### graphing ###
-                plt.figure(figsize = (10,6))
-                plt.title('Evolution of r')
-                plt.ylim(0,1)
-                plt.plot(t_range, rList, 'k', label = 'K = 1')
-                plt.legend()
-                
-                plt.xlabel('time t')
-                plt.ylabel('coherence r')
-                plt.savefig('graphics/repeated/t-vs-r' + '_omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '_run=' + str(run) + '.pdf', dpi = 200, bbox_inches = 'tight')
-                plt.show()
 
 
 
 
-
-
-
-
-# %%%%%%%%%%%%%%%%%% task 1: normal omegas, K-vs-r %%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 1: normal omegas, K-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%time
 
 
-N = 100             # 1000  -  100 took about 45min
+N = 20             # 1000  -  100 took about 45min
 T = 100             # 100
 dt = 0.01
 K = 4
@@ -251,36 +189,65 @@ K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]
 
 
 pop1 = OscPopulation()
-pop1.run('K-vs-r') 
+r_critList = pop1.run('K-vs-r') 
+
+
+# graphics 
+plt.figure(figsize = (10,6))
+plt.title('System state diagram')
+plt.xlim(0, 4)
+plt.plot(K_range, r_critList, 'ko')
+plt.xlabel('coupling strength K')
+plt.ylabel('coherence r')
+plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+plt.show()
 
 
 
 
 
-# %%%%%%%%%%%%%%%%%% task 2: normal omegas, t-vs-r %%%%%%%%%%%%%%%%%%
+
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 2: normal omegas, t-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%time
 
 
-N = 100             # 1000
+N = 20             # 1000
 T = 100             # 100
 dt = 0.01
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]      
-
+K_range = [1, 2]
 
 pop2 = OscPopulation('normal')
-pop2.run('t-vs-r')
+rList = pop2.run('t-vs-r')
+
+### graphing ###
+plt.figure(figsize = (10,6))
+plt.title('Evolution of r')
+plt.plot(t_range, rList[1], 'k', label = 'K = 1')
+plt.plot(t_range, rList[2], 'c', label = 'K = 2')
+plt.legend()
+
+plt.xlabel('time t')
+plt.ylabel('coherence r')
+plt.savefig('graphics/t-vs-r_' + 'omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+plt.show()
 
 
 
 
 
-# %%%%%%%%%%%%%%%%%% task 3: uniform omegas, K-vs-r %%%%%%%%%%%%%%%%%%
+
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 3: uniform omegas, K-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %time
 
 
-N = 100                   # 2000    - 100, 100, took 6min
+N = 20                   # 2000    - 100, 100, took 6min
 T = 100                   # 200
 dt = 0.05
 K = 1.5
@@ -292,19 +259,29 @@ t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]  
 
 pop3 = OscPopulation('uniform')
-%time
-pop3.run('K-vs-r')
+r_critList = pop3.run('K-vs-r') 
+
+
+# graphics 
+plt.figure(figsize = (10,6))
+plt.title('System state diagram')
+plt.xlim(0, 4)
+plt.plot(K_range, r_critList, 'ko')
+plt.xlabel('coupling strength K')
+plt.ylabel('coherence r')
+plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+plt.show()
 
 
 
 
 
 
-# %%%%%%%%%%%%%%%%%% task 4: uniform omegas, fixed omegas, change thetas, t-vs-r repeated %%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 4: uniform omegas, fixed omegas, change thetas, t-vs-r repeated %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 500                   # 2000
+N = 50                   # 2000
 T = 200                   # 200
 dt = 0.05
 
@@ -314,27 +291,49 @@ t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 
 fixedOmegaPop = OscPopulation('uniform')
 resetPop = fixedOmegaPop
+rAllLists = []
 
-
-for run in range(1, 10 + 1):
+for run in range(10):
     fixedOmegaPop = resetPop
-    print('reset population')
-    
-    fixedOmegaPop.changeThetas()
+    print('## population reset ##')
 
-    fixedOmegaPop.run('t-vs-r', run)
+    fixedOmegaPop.changeThetas()
+    print('## thetas changed ##')
+
+    rNewList = fixedOmegaPop.run('t-vs-r')
+    rAllLists.append(rNewList)
 
     print('run', str(run), 'done\n')
 
 
 
+### graphing ###
+plt.figure(figsize = (10,6))
+plt.title('Evolution of r')
+plt.ylim(0,1)
+plt.xlabel('time t')
+plt.ylabel('coherence r')
+
+for rList in rAllLists:
+    plt.plot(t_range, rList)
+
+filename = 'graphics/t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
+plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
+plt.show()
 
 
-# %%%%%%%%%%%%%%%%%% task 5: uniform omegas, fixed thetas, change omegas, t-vs-r repeated %%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 5: uniform omegas, fixed thetas, change omegas, t-vs-r repeated %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 500                  # 2000
+N = 50                  # 2000
 T = 200                 # 200
 dt = 0.05
 
@@ -345,17 +344,40 @@ t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 
 fixedThetaPop = OscPopulation('uniform')
 resetPop = fixedThetaPop
+rAllLists = []
 
 
-for run in range(11, 20 + 1):
+for run in range(10):
     fixedThetaPop = resetPop
-    print('reset population')
+    print('## population reset ##')
 
     fixedThetaPop.changeOmegas()
+    print('## omegas changed ##')
 
-    fixedThetaPop.run('t-vs-r', run)
+    rNewList = fixedThetaPop.run('t-vs-r')
+    rAllLists.append(rNewList)
 
     print('run', str(run), 'done\n')
+
+
+### graphing ###
+plt.figure(figsize = (10,6))
+plt.title('Evolution of r')
+plt.ylim(0,1)
+plt.xlabel('time t')
+plt.ylabel('coherence r')
+
+for rList in rAllLists:
+    plt.plot(t_range, rList)
+
+filename = 'graphics/t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
+plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
+plt.show()
+
+
+
+
+
 
 
 
