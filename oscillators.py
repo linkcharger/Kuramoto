@@ -6,25 +6,21 @@ import matplotlib.pyplot as plt
 
 
 
-T = 50        # 100
-h = 0.01
-N = 50        # 1000
-numberOfPoints = int(T/h)
-t_range = [round(i * h, 4) for i in range(1, numberOfPoints)]
-K_range = np.linspace(0, 5, 25)             # from 0 to 5, give me 20 points total, including endpoint = 5
+############################################### options for optimisation #############################################
+#
+# jit
+# double sum -> even better, average phase, then ...? wait what?
+# 
+#####################################################################################################################
 
-
-## when I still used indices -> indexes need be integers ##
-# int_t_range = [round(t_range[i] / h) for i in range(numberOfPoints-1)]
-# t = 0 is setup -> in first loop t = 1, will grab t-1 = 0 in sin()!
 
 
 
 
 class Oscillator:
 
-    def __init__(self, initPhase, natFreq):
-        self.omega = natFreq
+    def __init__(self, initPhase, omega):
+        self.omega = omega
         self.lastTheta = 0
         self.currentTheta = initPhase
 
@@ -33,16 +29,44 @@ class Oscillator:
 
 class OscPopulation:
 
-    def __init__(self):
+    def __init__(self, omegaDistr = 'normal'):
         # list of objects  
         self.list_os = []
+        self.omegaDistr = omegaDistr
+       
+       # complete initialisation
+        for n in range(N):
+            if omegaDistr == 'normal': omega = rand.normalvariate(0,1)
+            elif omegaDistr == 'uniform': omega = rand.uniform(-0.5, 0.5)
+                    
+            initPhase = rand.uniform(0, math.tau)        
+            
+            self.list_os.append(Oscillator(initPhase, omega))
 
+        print('oscillators initialised with', omegaDistr, 'distibution of omegas' )
+
+
+
+    def changeThetas(self):
         for n in range(N):
             initPhase = rand.uniform(0, math.tau)
-            natFreq = rand.normalvariate(0,1)
 
-            self.list_os.append(Oscillator(initPhase, natFreq))
-        print("oscillators created")
+            # update thetas
+            self.list_os[n].lastTheta = 0
+            self.list_os[n].currentTheta = initPhase
+            # dont touch omegas
+
+        print('## thetas changed ##')
+
+    def changeOmegas(self):
+        for n in range(N):
+            omega = rand.uniform(-0.5, 0.5)
+
+            # update omegas
+            self.list_os[n].omega = omega
+            # dont touch thetas
+
+        print('## omegas changed ##')
 
 
 
@@ -94,7 +118,7 @@ class OscPopulation:
             theta_dot_t = self.list_os[n].omega + K/N * sum
         
             # new theta for oscillator n -> euler step
-            theta_t = self.list_os[n].lastTheta + h * theta_dot_t
+            theta_t = self.list_os[n].lastTheta + dt * theta_dot_t
 
             # going down list of objects, pick object, dial into theta list, append
             self.list_os[n].currentTheta = theta_t
@@ -104,7 +128,7 @@ class OscPopulation:
 
 
 
-    def run(self, mode):
+    def run(self, mode, run = 0):
         
 
         ####################################################################################################################################
@@ -124,77 +148,211 @@ class OscPopulation:
 
             # execute at the very end only
             plt.figure(figsize = (10,6))
-            plt.title('Bifurcation diagram')
+            plt.title('System state diagram')
+            plt.xlim(0, 4)
             plt.plot(K_range, r_critList, 'ko')
             plt.xlabel('coupling strength K')
             plt.ylabel('coherence r')
-            plt.savefig('K-vs-r_K-' + '_N' + str(N) + '_T' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+            plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
             plt.show()
 
 
 
         ####################################################################################################################################
         if mode == 't-vs-r':
-            rList = [[], [], []]
-            
-            for K in [1,2]:  
 
+            # single run
+            if run == 0:
+
+                rList = [[], [], []]
+                
+                for K in [1,2]:  
+
+                    for t in t_range:
+                        # status
+                        if t % 10 == 0: print('t =', t, 'done') 
+
+
+                        # step all oscillators forward INTO timeperiod t
+                        self.stepAll(K)
+
+                        # calculate the population's coherence at each time step
+                        r = self.calc_r()
+                        rList[K].append(r)
+                    
+                    print('###### K =', K, 'done #####')
+                        
+
+                ### graphing ###
+                plt.figure(figsize = (10,6))
+                plt.title('Evolution of r')
+                plt.plot(t_range, rList[1], 'k', label = 'K = 1')
+                plt.plot(t_range, rList[2], 'c', label = 'K = 2')
+                plt.legend()
+                
+                plt.xlabel('time t')
+                plt.ylabel('coherence r')
+                plt.savefig('graphics/t-vs-r_' + 'omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+                plt.show()
+
+
+            # repeated runs -> K = 1
+            else:
+                K = 1  
+                rList = []
+                
                 for t in t_range:
                     # status
                     if t % 10 == 0: print('t =', t, 'done') 
-
 
                     # step all oscillators forward INTO timeperiod t
                     self.stepAll(K)
 
                     # calculate the population's coherence at each time step
                     r = self.calc_r()
-                    rList[K].append(r)
-                
-                print('K =', K, 'done')
+                    rList.append(r)
                     
+                
+                        
 
-            ### graphing ###
-
-            ## individual plots ## 
-            # plt.figure(figsize = (10,12))
-            # plt.subplot(2, 1, 1)                                        # 2 rows, 1 column; this is the first
-            # plt.plot(t_range, rList[1], 'k', label = 'K = 1')
-            # plt.legend()
-            # plt.subplot(2, 1, 2)                                        # 2 rows, 1 column; this is the second
-            # plt.plot(t_range, rList[2], 'c', label = 'K = 2')
-            # plt.legend()
-
-            ## in one plot ##
-            plt.figure(figsize = (10,6))
-            plt.title('Evolution of r')
-            plt.plot(t_range, rList[1], 'k', label = 'K = 1')
-            plt.plot(t_range, rList[2], 'c', label = 'K = 2')
-            plt.legend()
-            
-            plt.xlabel('time t')
-            plt.ylabel('coherence r')
-            plt.savefig('t-vs-r_K-' + '_N' + str(N) + '_T' + str(T) +'.pdf', dpi = 200, bbox_inches = 'tight')
-            plt.show()
+                ### graphing ###
+                plt.figure(figsize = (10,6))
+                plt.title('Evolution of r')
+                plt.ylim(0,1)
+                plt.plot(t_range, rList, 'k', label = 'K = 1')
+                plt.legend()
+                
+                plt.xlabel('time t')
+                plt.ylabel('coherence r')
+                plt.savefig('graphics/repeated/t-vs-r' + '_omegaDistr=' + self.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '_run=' + str(run) + '.pdf', dpi = 200, bbox_inches = 'tight')
+                plt.show()
 
 
 
 
 
 
-############################################ execute ############################################
+
+
+# %%%%%%%%%%%%%%%%%% task 1: normal omegas, K-vs-r %%%%%%%%%%%%%%%%%%
+%%time
+
+
+N = 100             # 1000  -  100 took about 45min
+T = 100             # 100
+dt = 0.01
+K = 4
+dk = 0.1
+
+numberOfTimes = int(T/dt)
+numberOfK = int(K/dk)
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]            
+
+
+pop1 = OscPopulation()
+pop1.run('K-vs-r') 
 
 
 
 
 
-# %% task 2 %%
-pop2 = OscPopulation()
+# %%%%%%%%%%%%%%%%%% task 2: normal omegas, t-vs-r %%%%%%%%%%%%%%%%%%
+%%time
+
+
+N = 100             # 1000
+T = 100             # 100
+dt = 0.01
+
+numberOfTimes = int(T/dt)
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]      
+
+
+pop2 = OscPopulation('normal')
 pop2.run('t-vs-r')
 
 
 
 
-# %% task 1 %%
-pop1 = OscPopulation()
-pop1.run('K-vs-r')
+
+# %%%%%%%%%%%%%%%%%% task 3: uniform omegas, K-vs-r %%%%%%%%%%%%%%%%%%
+%time
+
+
+N = 100                   # 2000    - 100, 100, took 6min
+T = 100                   # 200
+dt = 0.05
+K = 1.5
+dk = 0.03
+
+numberOfTimes = int(T/dt)
+numberOfK = int(K/dk)
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]  
+
+pop3 = OscPopulation('uniform')
+%time
+pop3.run('K-vs-r')
+
+
+
+
+
+
+# %%%%%%%%%%%%%%%%%% task 4: uniform omegas, fixed omegas, change thetas, t-vs-r repeated %%%%%%%%%%%%%%%%%%
+%%time
+# --> same natural frequencies as first time, but start at different positions every time
+
+N = 100                   # 2000
+T = 100                   # 200
+dt = 0.05
+
+numberOfTimes = int(T/dt)
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+
+
+fixedOmegaPop = OscPopulation('uniform')
+resetPop = fixedOmegaPop
+
+
+for run in range(1, 10 + 1):
+    fixedOmegaPop = resetPop
+    fixedOmegaPop.changeThetas()
+
+    fixedOmegaPop.run('t-vs-r', run)
+
+    print('run', str(run), 'done\n')
+
+
+
+
+
+# %%%%%%%%%%%%%%%%%% task 5: uniform omegas, fixed thetas, change omegas, t-vs-r repeated %%%%%%%%%%%%%%%%%%
+%%time
+# --> have same positions as first run, but the natural frequencies get changed
+
+N = 100                  # 2000
+T = 100                 # 200
+dt = 0.05
+
+numberOfTimes = int(T/dt)
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+
+
+
+fixedThetaPop = OscPopulation('uniform')
+resetPop = fixedThetaPop
+
+
+for run in range(11, 20 + 1):
+    fixedThetaPop = resetPop
+    fixedThetaPop.changeOmegas()
+
+    fixedThetaPop.run('t-vs-r', run)
+
+    print('run', str(run), 'done\n')
+
+
+
+# %%
