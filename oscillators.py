@@ -3,13 +3,16 @@ import math
 import random as rand
 import numpy as np
 import matplotlib.pyplot as plt
-from numba import jit
+from numba import jit, double
+# from concurrent.futures import ThreadPoolExecutor
 
 
 
 ############################################### options for optimisation #############################################
 #
 # jit
+# -> it seems as if its getting a dtype wrong somewhere, converting to integer
+# 
 # double sum -> even better, average phase, then ...? wait what?
 # 
 #####################################################################################################################
@@ -22,7 +25,7 @@ class Oscillator:
 
     def __init__(self, initPhase, omega):
         self.omega = omega
-        self.lastTheta = 0
+        self.lastTheta = 0.0
         self.currentTheta = initPhase
 
 
@@ -102,30 +105,45 @@ class OscPopulation:
 
     
 
-    # step FOR time t -> use t-1 ####################################
+    # wrapper method
     def stepAll(self, K):
-        # getter from objects
-        lastThetaList = [self.list_os[n].lastTheta for n in range(N)]
+
+        # getter: from objects
+        lastThetaList = []
+        currentThetaList = []
+        omegaList = []
+
+        for n in range(N):
+            lastThetaList.append(self.list_os[n].lastTheta)
+            currentThetaList.append(self.list_os[n].currentTheta)
+            omegaList.append(self.list_os[n].omega)
+
+        # converting
         lastThetaArray = np.array(lastThetaList)
-
-        currentThetaList = [self.list_os[n].currentTheta for n in range(N)]
         currentThetaArray = np.array(currentThetaList)
-
-        omegaList = [self.list_os[n].omega for n in range(N)]
         omegaArray = np.array(omegaList)
 
+        # up until here its totally fine, values are correctly transmitted
+
         # calculating, handing over
-        lastThetaArray, currentThetaArray = self._stepAll(lastThetaArray, currentThetaArray, omegaArray, K)
+        newLastThetaArray, newCurrentThetaArray = self._stepAll(lastThetaArray, currentThetaArray, omegaArray, K)
+
+        # conversion, just in case
+        lastThetaList = newLastThetaArray.tolist()
+        currentThetaList = newCurrentThetaArray.tolist()
 
 
-        # setter -> back to OOP
+
+        # setter: back to OOP
         for n in range(N):
-            self.list_os[n].lastTheta = lastThetaArray[n]
-            self.list_os[n].currentTheta = currentThetaArray[n]
+            self.list_os[n].lastTheta = lastThetaList[n]
+            self.list_os[n].currentTheta = currentThetaList[n]
 
-
+    
+    
+    # step FOR time t -> use t-1 ####################################
     @staticmethod
-    @jit(nopython = True)
+    @jit(nopython = True)            #('double[:](double[:], double[:], double[:], int8)', nopython = True)
     def _stepAll(lastThetaArray, currentThetaArray, omegaArray, K):
         
         for n in range(N):                                                                  # step through time -> hand over value
@@ -193,10 +211,10 @@ class OscPopulation:
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 1: normal omegas, K-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%time
+# %time
 
 
-N = 20             # 1000  -  100 took about 45min
+N = 100             # 1000  -  100 took about 45min
 T = 100             # 100
 dt = 0.01
 K = 4
@@ -209,6 +227,8 @@ K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]
 
 
 pop1 = OscPopulation()
+# with ThreadPoolExecutor(4) as ex:
+#     ex.map()
 r_critList = pop1.run('K-vs-r') 
 
 
@@ -236,7 +256,7 @@ plt.show()
 %%time
 
 
-N = 20             # 1000
+N = 1000             # 1000
 T = 100             # 100
 dt = 0.01
 
@@ -272,8 +292,8 @@ plt.show()
 %%time
 
 
-N = 20                   # 2000    - 100, 100, took 6min
-T = 100                   # 200
+N = 2000                   # 2000    - 100, 100, took 6min
+T = 200                   # 200
 dt = 0.05
 K = 1.5
 dk = 0.03
@@ -309,20 +329,21 @@ plt.show()
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 50                      # 2000
-T = 50                      # 200
+N = 500                      # 2000
+T = 200                      # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 K_range = [1]
 
+runs = 5
 
 fixedOmegaPop = OscPopulation('uniform')
 resetPop = fixedOmegaPop
 rLists = []
 
-for run in range(10):
+for run in range(runs):
     fixedOmegaPop = resetPop
     print('## population reset ##')
 
@@ -343,7 +364,7 @@ plt.ylim(0,1)
 plt.xlabel('time t')
 plt.ylabel('coherence r')
 
-for run in range(10):
+for run in range(runs):
     plt.plot(t_range, rLists[run])
 
 filename = 'graphics/t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
@@ -362,8 +383,8 @@ plt.show()
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 50                  # 2000
-T = 50                 # 200
+N = 2000                  # 2000
+T = 200                 # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
@@ -376,7 +397,7 @@ resetPop = fixedThetaPop
 rLists = []
 
 
-for run in range(10):
+for run in range(runs):
     fixedThetaPop = resetPop
     print('## population reset ##')
 
@@ -396,7 +417,7 @@ plt.ylim(0,1)
 plt.xlabel('time t')
 plt.ylabel('coherence r')
 
-for run in range(10):
+for run in range(runs):
     plt.plot(t_range, rLists[run])
 
 filename = 'graphics/t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
@@ -405,3 +426,4 @@ plt.show()
 
 
             
+# %%
