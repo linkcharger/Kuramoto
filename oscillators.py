@@ -304,8 +304,8 @@ pop3.run('K-vs-r')
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 100                   # 2000
-T = 100                   # 200
+N = 500                   # 2000
+T = 200                   # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
@@ -318,6 +318,8 @@ resetPop = fixedOmegaPop
 
 for run in range(1, 10 + 1):
     fixedOmegaPop = resetPop
+    print('reset population')
+    
     fixedOmegaPop.changeThetas()
 
     fixedOmegaPop.run('t-vs-r', run)
@@ -332,8 +334,8 @@ for run in range(1, 10 + 1):
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 100                  # 2000
-T = 100                 # 200
+N = 500                  # 2000
+T = 200                 # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
@@ -347,6 +349,8 @@ resetPop = fixedThetaPop
 
 for run in range(11, 20 + 1):
     fixedThetaPop = resetPop
+    print('reset population')
+
     fixedThetaPop.changeOmegas()
 
     fixedThetaPop.run('t-vs-r', run)
