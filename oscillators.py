@@ -3,6 +3,7 @@ import math
 import random as rand
 import numpy as np
 import matplotlib.pyplot as plt
+from numba import jit
 
 
 
@@ -31,7 +32,7 @@ class OscPopulation:
 
     def __init__(self, omegaDistr = 'normal'):
         # list of objects  
-        self.list_os = []
+        self.list_os = np.zeros(N, dtype = Oscillator)
         self.omegaDistr = omegaDistr
        
        # complete initialisation
@@ -41,9 +42,9 @@ class OscPopulation:
                     
             initPhase = rand.uniform(0, math.tau)        
             
-            self.list_os.append(Oscillator(initPhase, omega))
+            self.list_os[n]  = Oscillator(initPhase, omega)
 
-        print('oscillators initialised with', omegaDistr, 'distibution of omegas' )
+        print('oscillators initialised with', omegaDistr.upper(), 'distibution of omegas' )
 
 
 
@@ -99,33 +100,42 @@ class OscPopulation:
         
         return r
 
-
+    
 
     # step FOR time t -> use t-1 ####################################
     def stepAll(self, K):
+        list_os = self.list_os
+
+        self._stepAll(list_os, K)
+
+
+
+    @staticmethod
+    @jit(nopython = False)
+    def _stepAll(list_os, K):
         
         for n in range(N):                                                                  # step through time -> hand over value
-            self.list_os[n].lastTheta = self.list_os[n].currentTheta
+            list_os[n].lastTheta = list_os[n].currentTheta
 
         # calculate new thetas
         for n in range(N):
             
             sum = 0
             for j in range(N):                                                              # calculate differential sum for ONE oscillator n for time t
-                sum += math.sin(self.list_os[j].lastTheta - self.list_os[n].lastTheta)                  
+                sum += math.sin(list_os[j].lastTheta - list_os[n].lastTheta)                  
 
-            theta_dot_t = self.list_os[n].omega + K/N * sum                                 # theta_dot_t for oscillator n
+            theta_dot_t = list_os[n].omega + K/N * sum                                 # theta_dot_t for oscillator n
             
-            theta_t = self.list_os[n].lastTheta + dt * theta_dot_t                          # new theta for oscillator n -> euler step
+            theta_t = list_os[n].lastTheta + dt * theta_dot_t                          # new theta for oscillator n -> euler step
 
-            self.list_os[n].currentTheta = theta_t                                          # going down list of objects, pick object, dial into theta list, append
-
-
+            list_os[n].currentTheta = theta_t                                          # going down list of objects, pick object, dial into theta list, append
 
 
 
 
-    def run(self, mode, run = 0):
+
+
+    def run(self, mode):
         
         if mode == 'K-vs-r':
             r_critList= []
