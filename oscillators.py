@@ -104,33 +104,47 @@ class OscPopulation:
 
     # step FOR time t -> use t-1 ####################################
     def stepAll(self, K):
-        list_os = self.list_os
+        # getter from objects
+        lastThetaList = [self.list_os[n].lastTheta for n in range(N)]
+        lastThetaArray = np.array(lastThetaList)
 
-        self._stepAll(list_os, K)
+        currentThetaList = [self.list_os[n].currentTheta for n in range(N)]
+        currentThetaArray = np.array(currentThetaList)
 
+        omegaList = [self.list_os[n].omega for n in range(N)]
+        omegaArray = np.array(omegaList)
+
+        # calculating, handing over
+        lastThetaArray, currentThetaArray = self._stepAll(lastThetaArray, currentThetaArray, omegaArray, K)
+
+
+        # setter -> back to OOP
+        for n in range(N):
+            self.list_os[n].lastTheta = lastThetaArray[n]
+            self.list_os[n].currentTheta = currentThetaArray[n]
 
 
     @staticmethod
-    @jit(nopython = False)
-    def _stepAll(list_os, K):
+    @jit(nopython = True)
+    def _stepAll(lastThetaArray, currentThetaArray, omegaArray, K):
         
         for n in range(N):                                                                  # step through time -> hand over value
-            list_os[n].lastTheta = list_os[n].currentTheta
+            lastThetaArray[n] = currentThetaArray[n]
 
         # calculate new thetas
         for n in range(N):
             
             sum = 0
             for j in range(N):                                                              # calculate differential sum for ONE oscillator n for time t
-                sum += math.sin(list_os[j].lastTheta - list_os[n].lastTheta)                  
+                sum += math.sin(lastThetaArray[j] - lastThetaArray[n])                  
 
-            theta_dot_t = list_os[n].omega + K/N * sum                                 # theta_dot_t for oscillator n
+            theta_dot_t = omegaArray[n] + K/N * sum                                 # theta_dot_t for oscillator n
             
-            theta_t = list_os[n].lastTheta + dt * theta_dot_t                          # new theta for oscillator n -> euler step
+            theta_t = lastThetaArray[n] + dt * theta_dot_t                          # new theta for oscillator n -> euler step
 
-            list_os[n].currentTheta = theta_t                                          # going down list of objects, pick object, dial into theta list, append
+            currentThetaArray[n] = theta_t                                          # going down list of objects, pick object, dial into theta list, append
 
-
+        return lastThetaArray, currentThetaArray
 
 
 
@@ -202,10 +216,13 @@ r_critList = pop1.run('K-vs-r')
 plt.figure(figsize = (10,6))
 plt.title('System state diagram')
 plt.xlim(0, 4)
-plt.plot(K_range, r_critList, 'ko')
+plt.ylim(0, 1)
 plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
-plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+
+plt.plot(K_range, r_critList, 'ko')
+filename = 'graphics/K-vs-r_' + 'omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
+plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
 
@@ -233,13 +250,15 @@ rList = pop2.run('t-vs-r')
 ### graphing ###
 plt.figure(figsize = (10,6))
 plt.title('Evolution of r')
+plt.ylim(0, 1)
+plt.xlabel('time t')
+plt.ylabel('coherence r')
+
 plt.plot(t_range, rList[1], 'k', label = 'K = 1')
 plt.plot(t_range, rList[2], 'c', label = 'K = 2')
 plt.legend()
-
-plt.xlabel('time t')
-plt.ylabel('coherence r')
-plt.savefig('graphics/t-vs-r_' + 'omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+filename = 'graphics/t-vs-r_' + 'omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
+plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
 
@@ -272,10 +291,13 @@ r_critList = pop3.run('K-vs-r')
 plt.figure(figsize = (10,6))
 plt.title('System state diagram')
 plt.xlim(0, 4)
-plt.plot(K_range, r_critList, 'ko')
+plt.ylim(0, 1)
 plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
-plt.savefig('graphics/K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf', dpi = 200, bbox_inches = 'tight')
+
+plt.plot(K_range, r_critList, 'ko')
+filename = 'graphics/K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
+plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
 
