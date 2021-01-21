@@ -54,6 +54,7 @@ class OscPopulation:
             # update thetas
             self.list_os[n].lastTheta = 0
             self.list_os[n].currentTheta = initPhase
+            
             # dont touch omegas
 
 
@@ -63,6 +64,7 @@ class OscPopulation:
 
             # update omegas
             self.list_os[n].omega = omega
+           
             # dont touch thetas
 
         
@@ -161,10 +163,6 @@ class OscPopulation:
                         
                 return rList
                 
-
-
-                
-                        
 
 
 
@@ -279,8 +277,8 @@ plt.show()
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 50                   # 2000
-T = 200                   # 200
+N = 50                      # 2000
+T = 50                      # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
@@ -290,7 +288,7 @@ K_range = [1]
 
 fixedOmegaPop = OscPopulation('uniform')
 resetPop = fixedOmegaPop
-rAllLists = []
+rLists = []
 
 for run in range(10):
     fixedOmegaPop = resetPop
@@ -300,7 +298,7 @@ for run in range(10):
     print('## thetas changed ##')
 
     rNewList = fixedOmegaPop.run('t-vs-r')
-    rAllLists.append(rNewList)
+    rLists.append(rNewList[1])
 
     print('############# run', str(run), 'done #############\n')
 
@@ -314,7 +312,7 @@ plt.xlabel('time t')
 plt.ylabel('coherence r')
 
 for run in range(10):
-    plt.plot(t_range, rAllLists[run])
+    plt.plot(t_range, rLists[run])
 
 filename = 'graphics/t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
@@ -333,7 +331,7 @@ plt.show()
 # --> have same positions as first run, but the natural frequencies get changed
 
 N = 50                  # 2000
-T = 200                 # 200
+T = 50                 # 200
 dt = 0.05
 
 numberOfTimes = int(T/dt)
@@ -343,7 +341,7 @@ K_range = [1]
 
 fixedThetaPop = OscPopulation('uniform')
 resetPop = fixedThetaPop
-rAllLists = []
+rLists = []
 
 
 for run in range(10):
@@ -354,7 +352,7 @@ for run in range(10):
     print('## omegas changed ##')
 
     rNewList = fixedThetaPop.run('t-vs-r')
-    rAllLists.append(rNewList)
+    rLists.append(rNewList[1])
 
     print('############# run', str(run), 'done #############\n')
 
@@ -367,17 +365,11 @@ plt.xlabel('time t')
 plt.ylabel('coherence r')
 
 for run in range(10):
-    plt.plot(t_range, rAllLists[run])
+    plt.plot(t_range, rLists[run])
 
 filename = 'graphics/t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '_T=' + str(T) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
 
-
-
-
-
-
-
-# %%
+            
