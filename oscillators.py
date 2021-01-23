@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from numba import jit, double
 # from concurrent.futures import ThreadPoolExecutor
-from copy import deepcopy
+# from copy import deepcopy
+import time
 
 
 
@@ -65,32 +66,7 @@ class OscPopulation:
             self.list_os[n].currenTtheta = newInitPhase                                    # handed over immediately on first run to lastTheta
             
 
-        print('3 variables re-randomised' )
-
-
-
-
-    # def changeThetas(self):
-
-    #     for n in range(N):
-    #         initPhase = rand.uniform(0, math.tau)
-
-    #         # update thetas
-    #         self.list_os[n].lastTheta = 0.0
-    #         self.list_os[n].currentTheta = initPhase
-    #         # dont touch omegas
-
-
-    # def changeOmegas(self):
-
-    #     for n in range(N):
-    #         omega = rand.uniform(-0.5, 0.5)
-
-    #         # update omegas
-    #         self.list_os[n].omega = omega
-    #         # dont touch thetas
-
-        
+        print('## 3 variables re-randomised ##' )        
 
 
 
@@ -201,48 +177,24 @@ class OscPopulation:
             print('K = ' + str(round(K,3)) + ' | r_crit = ' + str(round(r_crit, 3)))
             
         return r_critList
+                
 
 
+    def runT(self, K):
+        rList = []
 
-    def runT(self):
-        if len(K_range) > 1:
-            rList = [[]]
+        for t in t_range:
+            # step all oscillators forward INTO timeperiod t
+            self.stepAll(K)
 
-            for K in K_range:  
-                print('\nK =', K)
-                self.reRandomise()
-                # print('(reRandomised called by K loop)')
-
-                rList.append([])
-
-                for t in t_range:
-                    # step all oscillators forward INTO timeperiod t
-                    self.stepAll(K)
-
-                    # calculate the population's coherence at each time step
-                    r = self.calc_r()
-                    rList[K].append(r)
-                            
-                    # status
-                    if t % 10 == 0: print('t =', t, 'done') 
-
-        elif len(K_range) == 1:
-            rList = []
-
-            for K in K_range:  
-            
-                for t in t_range:
-                    # step all oscillators forward INTO timeperiod t
-                    self.stepAll(K)
-
-                    # calculate the population's coherence at each time step
-                    r = self.calc_r()
-                    rList.append(r)
-                            
-                    # status
-                    if t % 10 == 0: print('t =', t, 'done') 
-        
-        
+            # calculate the population's coherence at each time step
+            r = self.calc_r()
+            rList.append(r)
+                    
+            # status
+            if t % 10 == 0: print('t =', t, 'done') 
+    
+    
         return rList
                 
 
@@ -256,7 +208,7 @@ class OscPopulation:
 %%time
 
 
-N = 200             # 1000  -  100 took about 45min
+N = 500             # 1000 
 T = 100             # 100
 dt = 0.01
 K = 4
@@ -268,7 +220,7 @@ t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]            
 
 
-pop1 = OscPopulation()
+pop1 = OscPopulation('normal')
 r_critList = pop1.runK() 
 
 
@@ -281,10 +233,9 @@ plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
 
 plt.plot(K_range, r_critList, 'ko')
-filename = 'graphics/1 K-vs-r_' + 'omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '.pdf'
+filename = 'graphics/1_K-vs-r' + '_omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
-
 
 
 
@@ -304,8 +255,17 @@ numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]      
 K_range = [1, 2, 3]
 
-pop2 = OscPopulation('normal')
-rList = pop2.runT()
+rLists = [[]]
+
+for K in K_range:
+    pop2 = OscPopulation('normal')
+    rList = pop2.runT(K)
+
+    rLists.append(rList)
+
+
+
+
 
 ### graphing ###
 plt.figure(figsize = (10,6))
@@ -315,9 +275,9 @@ plt.xlabel('time t')
 plt.ylabel('coherence r')
 
 for K in K_range:
-    plt.plot(t_range, rList[K], label = 'K = ' + str(K))
+    plt.plot(t_range, rLists[K], label = 'K = ' + str(K))
 plt.legend()
-filename = 'graphics/2 t-vs-r_' + 'omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '.pdf'
+filename = 'graphics/2_t-vs-r' + '_omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
@@ -332,14 +292,14 @@ plt.show()
 %%time
 
 
-N = 400                   # 2000    - 100, 100, took 6min
+N = 1000                   # 2000    - 100, 100, took 6min
 T = 200                   # 200
 dt = 0.05
-K = 1.5
+Kmax = 2.0
 dk = 0.03
 
 numberOfTimes = int(T/dt)
-numberOfK = int(K/dk)
+numberOfK = int(Kmax/dk)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
 K_range =  [round(i * dk, 4) for i in range(numberOfK + 1)]  
 
@@ -356,7 +316,7 @@ plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
 
 plt.plot(K_range, r_critList, 'ko')
-filename = 'graphics/3 K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '.pdf'
+filename = 'graphics/3_K-vs-r' + '_omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
@@ -369,7 +329,7 @@ plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
 
 plt.plot(K_range, r_critList, 'ko')
-filename = 'graphics/3 K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_zoomed' + '_N=' + str(N) + '.pdf'
+filename = 'graphics/3 K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_zoomed' + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
@@ -377,18 +337,18 @@ plt.show()
 
 
 
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 4: uniform omegas, fixed omegas, change thetas, t-vs-r repeated %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%% task 4: uniform omegas, fixed omegas, change thetas, t-vs-r repeated %%%%%%%%%%%%%%%%%
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 400                      # 2000
+N = 1000                      # 2000
 T = 200                      # 200
 dt = 0.05
 runs = 10 
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
-K_range = [2]                # 1
+K = 1               # 1
 
 fixedOmegaPop = OscPopulation('uniform')
 # savedOmegas = deepcopy(fixedOmegaPop)
@@ -402,7 +362,7 @@ for run in range(runs):
         _fixedOmegaPop.list_os[n].omega = fixedOmegaPop.list_os[n].omega
     print('original omegas restored')
 
-    rNewList = _fixedOmegaPop.runT()
+    rNewList = _fixedOmegaPop.runT(K)
     rLists.append(rNewList)
 
     print('############# run', str(run), 'done #############\n') 
@@ -418,7 +378,7 @@ plt.ylabel('coherence r')
 for run in range(runs):
     plt.plot(t_range, rLists[run])
 
-filename = 'graphics/4 t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '.pdf'
+filename = 'graphics/4_t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
@@ -428,18 +388,18 @@ plt.show()
 
 
 
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 5: uniform omegas, fixed thetas, change omegas, t-vs-r repeated %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# %%%%%%%%%%%%%%%%% task 5: uniform omegas, fixed thetas, change omegas, t-vs-r repeated %%%%%%%%%%%%%%%%%
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 400                  # 2000
+N = 1000                  # 2000
 T = 200                 # 200
 dt = 0.05
 runs = 10
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
-K_range = [1]
+K = 1
 
 
 fixedThetaPop = OscPopulation('uniform')
@@ -455,7 +415,7 @@ for run in range(runs):
         _fixedThetaPop.list_os[n].lastTheta = 0.0
     print('original thetas restored')
 
-    rNewList = _fixedThetaPop.runT()
+    rNewList = _fixedThetaPop.runT(K)
     rLists.append(rNewList)
 
     print('############# run', str(run), 'done #############\n')
@@ -471,12 +431,9 @@ plt.ylabel('coherence r')
 for run in range(runs):
     plt.plot(t_range, rLists[run])
 
-filename = 'graphics/5 t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '.pdf'
+filename = 'graphics/5_t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
 
 
-
-
-# %%
