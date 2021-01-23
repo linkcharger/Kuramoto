@@ -208,7 +208,7 @@ class OscPopulation:
 %%time
 
 
-N = 500             # 1000 
+N = 1000             # 1000 
 T = 100             # 100
 dt = 0.01
 K = 4
@@ -247,7 +247,7 @@ plt.show()
 %%time
 
 
-N = 500             # 1000
+N = 1000             # 1000
 T = 100             # 100
 dt = 0.01
 
@@ -292,10 +292,10 @@ plt.show()
 %%time
 
 
-N = 1000                   # 2000    - 100, 100, took 6min
+N = 2000                   # 2000    - 100, 100, took 6min
 T = 200                   # 200
 dt = 0.05
-Kmax = 2.0
+Kmax = 1.5
 dk = 0.03
 
 numberOfTimes = int(T/dt)
@@ -329,7 +329,7 @@ plt.xlabel('coupling strength K')
 plt.ylabel('coherence r')
 
 plt.plot(K_range, r_critList, 'ko')
-filename = 'graphics/3 K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_zoomed' + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
+filename = 'graphics/3_K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_zoomed' + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
@@ -341,7 +341,7 @@ plt.show()
 %%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 1000                      # 2000
+N = 2000                      # 2000
 T = 200                      # 200
 dt = 0.05
 runs = 10 
@@ -392,7 +392,7 @@ plt.show()
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 1000                  # 2000
+N = 2000                  # 2000
 T = 200                 # 200
 dt = 0.05
 runs = 10
@@ -435,5 +435,28 @@ filename = 'graphics/5_t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 plt.show()
 
+
+
+
+# %%
+import sympy as sp
+from sympy import * # Eq, solve, symbols
+
+theta = s.symbols('theta')
+# K, r = s.symbols('K r', positive=True)
+# g = s.Function('g')
+
+K = 1
+r = 0.5
+
+#  (sp.cos(theta))**2 *
+integrand = (1/(sp.sqrt(2 * sp.pi)) * E**(-1/2 * (K * r * sp.sin(theta))**2))
+display(integrand)
+
+rightHand = integrate(integrand, (theta, -(sp.pi/2), sp.pi/2))
+display(rightHand)
+
+# eqn = Eq(1, rightHand)
+# solve(eqn, r)
 
 
