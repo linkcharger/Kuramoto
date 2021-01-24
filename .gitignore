@@ -1,3 +1,10 @@
 task
 resources
 *.mkv
+kuramoto.aux
+kuramoto.bcf
+kuramoto.log
+kuramoto.out
+kuramoto.run.xml
+kuramoto.synctex.gz
+kuramoto.tex.bak

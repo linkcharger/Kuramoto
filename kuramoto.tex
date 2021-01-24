@@ -1,0 +1,321 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{lmodern}
+\usepackage[
+	margin		= 20mm,
+	top 		= 22mm,
+	bottom 		= 10mm, 
+	footnotesep = 2\baselineskip	
+]{geometry}			
+%\usepackage{listings}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}																	% clears all headers and footers
+\fancyhead[c]{}
+\fancyhead[l]{Aaron Schade}
+\fancyhead[r]{\thepage}
+\renewcommand{\headrulewidth}{1pt}
+%\renewcommand{\footrulewidth}{1pt}
+
+%\setlength{\headsep}{5mm}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\usepackage[
+	notes,
+%	short,										% even first mention is shortened
+	genallnames,								% when using \gentextcite for possessive cases, use all authors names
+%	strict,										% erases the line before footnotes?
+	urlnotes		= false,					% disable url, doi, eprint in notes but not in bibliography; alternatively: includeall  false OR doi % false, isbn % false, url % false,	eprint % false
+	eprint			= false,
+	backend 		= biber,					% biber's more advanced than bibtex
+	autolang 		= other,
+%	bibencoding 	= utf8,						% before: latin1 -> fucked up everything, couldnt recognise utf8 characters (duh!)
+	compresspages]								% something like 321--328 in your .bib file would become 321–28
+{biblatex-chicago}
+\addbibresource{thesis.bib}
+
+\AtEveryCitekey{\clearfield{isbn}}				% show isbn in bib, as before, but clear in citations
+\AtEveryCitekey{\clearfield{issn}}	
+\AtEveryCitekey{\clearfield{note}}	
+
+
+\AtEveryCitekey{\clearfield{series}}	
+\AtEveryCitekey{\clearlist{publisher}}	
+\AtEveryCitekey{\clearlist{location}}	
+\AtEveryCitekey{\clearfield{journaltitle}}	
+\AtEveryCitekey{\clearfield{volume}}	
+\AtEveryCitekey{\clearfield{pages}}	
+\AtEveryCitekey{\clearfield{edition}}	
+\AtEveryCitekey{\clearfield{date}}	
+\AtEveryCitekey{\clearfield{year}}	
+\AtEveryCitekey{\clearfield{institution}}	
+\AtEveryCitekey{\clearfield{number}}	
+\AtEveryCitekey{\clearfield{booktitle}}	
+%\AtEveryCitekey{\clearname{editor}}	
+
+
+\renewcommand*{\bibfont}{\small}
+\DeclareDelimFormat{finalnamedelim}{\addspace\bibstring{and}\space}			% remove oxford comma
+
+
+
+\usepackage[multiple, hang]{footmisc}
+\setlength{\footnotemargin}{3mm}
+
+
+
+%\usepackage{fnpct}											% improves kerning (spacing) of footnotemakrs above punctuation, could potentially do 'multiple' but doesnt work for citations (or at least its annoying with footnote citations)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% important to load AFTER packages affecting referencing of any kind
+\usepackage[
+	linktoc			= all,								
+	hyperfootnotes	= false, 				% footnotemarks are hyper to footnotetext - easily broken :/
+%	hyperindex,								% numbers in index are hyper
+	hidelinks, 								% just disables colour and border
+%	bookmarksopen 	= false					% doesnt work to hide bookmarks, instead:
+	pdfpagemode		= UseNone, 
+	pdftitle 		= 'glorious title'
+]{hyperref}
+
+
+
+
+%%%%%%%%% misc %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{lipsum}
+
+
+\usepackage{enumitem}
+	\setlist{nosep}
+%\usepackage{setspace}
+%\usepackage{sectsty}
+%\allsectionsfont{\centering}
+
+
+%\usepackage{multicol}
+%\newcommand{\fixspacing}{\vspace{0pt plus 1filll}\mbox{}}		% makes paragraphs not stretch in multicol - maybe?
+
+
+\newcommand{\osc}{\texttt{Oscillator}~}
+\newcommand{\oscpop}{\texttt{OscPopulation}~}
+
+
+\newcommand{\graph}{\medskip\noindent}
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% to do %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+\begin{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Theoretical study}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Numerical study}
+
+
+{\large\textbf{Omegas -- normally distributed}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r_{\infty}(K)$ -- simulated vs predicted}
+
+
+\subsubsection{Euler method}
+
+\paragraph{Design and initiation}
+My implementation of the Euler method is object-oriented. 
+This may not be the computationally most efficient way, but I'm still somewhat of a beginner with code, so I appreciate the clarity that object-oriented programming affords.
+
+The first type of object is simply an \osc with three variables: $\omega, \theta_{t-1}$ and $\theta_t$. 
+A $\Delta t = 1$ is enough in the Euler method.
+An \osc gets initiated with its natural frequency and the current-period $\theta$. 
+The last-period $\theta$ is initiated as zero, since the first part of making an 'Euler step' forwards is to hand over $\theta_{t}$ to $\theta_{t-1}$. 
+
+The other object type is the \oscpop. 
+It consists of a list of \texttt{Oscillators} and a construction mode, namely the distribution according to which the $\omega$s are distributed.
+When an \oscpop is initiated, for each \osc a natural frequency and initial phase are drawn from the respective type of random distribution. 
+An \osc object is then initiated with those values and assigned to a place in the list within the \oscpop object.
+
+
+\paragraph{Running the simulation}
+
+
+
+
+
+
+
+
+
+
+
+\subsubsection{Numerical integration}
+
+
+The strategy to integrate the consistency equation is to loop through different values of $r$ and check which ones make the right-hand side approximately equal to one. 
+In a loop around this one, we cycle through the different values for K to get the values of the desired $r_\infty(K)$ relationship. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r(t)$ for $K = [1, 2]$}
+
+
+
+
+
+
+
+
+
+
+
+
+{\large\textbf{Omegas -- uniformly distributed}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r_{\infty}(K)$}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r(t)$ for different initial conditions $\theta_0$}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r(t)$ for different initial conditions $\omega_0$}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
