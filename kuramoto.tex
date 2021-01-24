@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{lmodern}
 \usepackage[
 	margin		= 20mm,
@@ -193,8 +194,39 @@ An \osc object is then initiated with those values and assigned to a place in th
 
 \paragraph{Running the simulation}
 
+The simulation can run in two modes, \texttt{runK} and \texttt{runT}. 
+I will get into the latter in subsection \ref{r(t)}.
+
+\texttt{runK} loops through the different values for K, starting with resetting the oscillators in the population, then Euler-stepping all oscillators through until T, and finally calculating $r_\infty$. 
+The oscillators are reset by finding new random values for $\omega$ and current-period $\theta$; as in the original initiation, last-period $\theta$ is set to zero.
+
+The Euler step is straight-forward in principle, but needs to be optimised for reasonable computation times. 
+Originally, running task 1 with $ N = 100$, $K = [0, 4]$ and $dK = 0.1$ took about 45 minutes. 
+Since the computation time likely increases exponentially with $N$, since more neighbouring oscillators have to be considered at each step, the full compute time for $N=1000$ would have been unreasonable. 
+Thus, I make use of the \texttt{numba} package which offers 'decorators' for functions. 
+These decorators are functions which take other functions as inputs and return optimised functions.
+In this case, the \texttt{@jit} decorator converts my core Euler step computation function into optimised machine code using the LLVM compiler. 
+This can yield computation speeds similar to C or FORTRAN.\footnote{http://numba.pydata.org/}
+For me, it took the compute time for task 1 with $ N = 100$ from 45 minutes down to 4 minutes. 
+
+To make it work, however, the function needs to take \texttt{nympy.ndarrays} as inputs, not objects like was originally the case in my object-oriented code. 
+Therefore, I wrote the wrapper function \texttt{oneStepForAll}. 
+It gets the values from the \oscpop object, puts them into temporary values and then calls the optimised function \texttt{XoneStepForAll} using those temporary values (namely, arrays for $\omega, \theta_{t-1}, \theta_{t}$).
+The returned arrays for $\theta_{t-1}, \theta_{t}$ are then written onto the \osc objects in the \oscpop. 
+
+The core \texttt{XoneStepForAll} function implements a standard Euler approximation.
+First, the $\theta$ s are stepped through time by $\Delta t = 1$ by handing the value of $\theta_{t}$ over to $\theta_{t-1}$. 
+In the next step, the sum of the difference between the current oscillator $n$ 's $\theta_{t-1}$ and all other oscillators $j$ 's $\theta_{t-1}$ is computed. 
 
 
+\begin{align*}
+	sum 					& = \sum_{j = 0}^N = \sin(\theta^j_{t-1} - \theta^n_{t-1}) \\
+\intertext{From this, we can calculate the discrete $\dot{\theta}_t^n$}
+	\dot{\theta}_t^n 		& = \omega_n + \frac{K}{N} *  sum \\
+\intertext{The new $\theta_t$ of oscillator n is then}
+	\theta^n_t 				& = \theta^n_{t-1} + dt \cdot \dot{\theta}_t^n \\
+\end{align*}
+This is done for all N oscillators. 
 
 
 
@@ -224,9 +256,9 @@ In a loop around this one, we cycle through the different values for K to get th
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{$r(t)$ for $K = [1, 2]$}
+\subsection{$r(t)$ for $K = [1, 2]$} \label{r(t)}
 
-
+As opposed to \texttt{runK}
 
 
 

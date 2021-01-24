@@ -325,9 +325,9 @@ plt.show()
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 3: uniform omegas, K-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# %%time
-N = 400                   # 2000    - 100, 100, took 6min
-T = 200                   # 200
+%%time
+N = 500                   # 2000    - 100, 100, took 6min
+T = 100                   # 200
 dt = 0.05
 Kmax = 1.5
 dk = 0.03
@@ -335,7 +335,7 @@ dk = 0.03
 numberOfTimes = int(T/dt)
 numberOfK = int(Kmax/dk)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
-K_range =  np.linspace(0, Kmax, numberOfK + 1) # [round(i * dk, 4) for i in range(numberOfK + 1)]  
+K_range =   [round(i * dk, 4) for i in range(numberOfK + 1)]  # np.linspace(0, Kmax, numberOfK + 1) #
 # K_range = [0.5, 0.7, 1.0, 1.2] 
 
 pop3 = OscPopulation('uniform')
@@ -382,7 +382,7 @@ dt = 0.05
 runs = 5
 
 numberOfTimes = int(T/dt)
-t_range = np.linspace(0, T, numberOfTimes) # [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)] # np.linspace(0, T, numberOfTimes + 1)
 K = 1             # 1
 
 fixedOmegaPop = OscPopulation('uniform')
@@ -426,13 +426,13 @@ plt.show()
 %%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 200                  # 2000
+N = 500                  # 2000
 T = 200                 # 200
 dt = 0.05
 runs = 10
 
 numberOfTimes = int(T/dt)
-t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]
+t_range = np.linspace(0, T, numberOfTimes + 1) #[round(i * dt, 4) for i in range(numberOfTimes + 1)]
 K = 1
 
 
