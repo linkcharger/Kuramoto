@@ -14,6 +14,8 @@
 \usepackage{float}									% adds [H] position argument aka 'the sledgehammer'
 \usepackage{subcaption}								% adds subfigure
 \usepackage{pdflscape}								% landscape pages
+\usepackage{commath}								% adds vertical bar for \abs
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -126,8 +128,8 @@
 \newcommand{\osc}{\texttt{Oscillator}~}
 \newcommand{\oscpop}{\texttt{OscPopulation}~}
 
-\newcommand{\runK}{\mbox{\texttt{OscPopulation.runK()}}}
-\newcommand{\runT}{\mbox{\texttt{OscPopulation.runT()}}}
+\newcommand{\runK}{\code{runK()}~}
+\newcommand{\runT}{\code{runT()}~}
 
 \newcommand{\code}[1]{\texttt{#1}}
 
@@ -205,80 +207,102 @@
 
 
 \subsubsection{Euler method}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \para{Design and initiation}
 My implementation of the Euler method is object-oriented. 
-This may not be the computationally most efficient way, but I'm still somewhat of a beginner with code, so I appreciate the clarity that object-oriented programming affords.
+This may not be the computationally most efficient way, but I'm still somewhat coding beginner, so I appreciate the clarity that object-oriented programming affords.
+The first type of object is simply an \osc with three fields: $\omega, \theta_{s-1}$ and $\theta_s$. 
+In the Euler method it is enough to store the present and the last value of the state variable ($\theta$).
+In the rest of this documentation, I will refer to \textit{simulation} time steps with the variable $s$ to differentiate it from the \textit{equation} time step $t$.
 
-The first type of object is simply an \osc with three variables: $\omega, \theta_{t-1}$ and $\theta_t$. 
-A $\Delta t = 1$ is enough in the Euler method.
-An \osc gets initiated with its natural frequency and the current-period $\theta$. 
-The last-period $\theta$ is initiated as zero, since the first part of making an 'Euler step' forwards is to hand over $\theta_{t}$ to $\theta_{t-1}$. 
+An \osc gets initiated with its natural frequency and the current-period $\theta_s$. 
+The last-period $\theta_{s-1}$ is initiated as zero, since the first part of making an 'Euler step' forwards in time is handing over $\theta_{s}$ to $\theta_{s-1}$. 
 
-The other object type is the \oscpop. 
-It consists of a list of \code{Oscillators} and a construction mode, namely the distribution according to which the $\omega$s are distributed.
-When an \oscpop is initiated, for each \osc a natural frequency and initial phase are drawn from the respective type of random distribution. 
-An \osc object is then initiated with those values and assigned to a place in the list within the \oscpop object.
+The other object type is a population of oscillators, \code{OscPopulation}. 
+It consists of a list of \code{Oscillators} and a construction mode, namely the probability distribution of the $\omega$.
+When an \oscpop is initiated, for each \osc a natural frequency and initial phase are drawn from the respective types of random distribution. 
+An \osc object is then initiated with those values for $\omega$ and $\theta_s$ and assigned to a place in the list within the \oscpop object.
+The \oscpop object thus possess an indexable list of all oscillators.
 
 
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \para{Running the simulation}
-The simulation can run in two modes, \runK and \runT. 
+The simulation has two functions, to run in two modes, \code{OscPopulation.runK()}~and \linebreak \code{OscPopulation.runT()}. 
 I will get into the latter in subsection \ref{r(t)}.
 
-To start a simulation, a new \oscpop gets created, passing the desired distribution type of $\omega$s to it.
+To start a simulation for finding $r_\infty(K)$, a new \oscpop object gets created, passing the desired distribution type of $\omega$ to it.
 Then \runK is run on this object.
-\runK loops through the different values for K, starting with resetting the oscillators in the population, then Euler-stepping all oscillators through until T, and finally calculating $r_\infty$. 
-The oscillators are reset by by finding new random values for $\omega$ and current-period $\theta$; as in the original initiation, last-period $\theta$ is set to zero.
+It loops through the different values for K, starting with resetting the oscillators in the population, then Euler-stepping all oscillators through time until T and finally calculating $r_\infty(K)$. 
+Take each in turn. 
+
+
+
 
 \graph
-The Euler step is straight-forward in principle, but needs to be optimised for reasonable computation times. 
-Originally, running task 1 with $ N = 100$, $K = [0, 4]$ and $dK = 0.1$ took about 45 minutes. 
-Since the computation time likely increases exponentially with $N$, since more neighbouring oscillators have to be considered at each step, the full compute time for $N=1000$ would have been unreasonable. 
-Thus, I make use of the \code{numba} package which offers 'decorators' for functions. 
-These decorators are functions which take other functions as inputs and return optimised functions.
-In this case, the \code{@jit} decorator converts my core Euler step computation function into optimised machine code using the LLVM compiler. 
-This can yield computation speeds similar to C or FORTRAN.\footnote{http://numba.pydata.org/}
-For me, it took the compute time for task 1 with $ N = 100$ from 45 minutes down to 4 minutes. 
+The oscillators are reset by by finding new random values for $\omega$ and $\theta_s$ for all \code{Oscillators} and setting their field value equal to the newly calculated value. 
+Same as during the original initiation, $\theta_{s-1}$ is set to zero.
 
-To make it work, however, the function needs to take \code{nympy.ndarrays} as inputs, not objects like was originally the case in my object-oriented code. 
-Therefore, I wrote the wrapper function \code{oneStepForAll}. 
-It gets the values from the \oscpop object, puts them into temporary values and then calls the optimised function \code{\_oneStepForAll} using those temporary values (namely, arrays for $\omega, \theta_{t-1}, \theta_{t}$).
-The returned arrays for $\theta_{t-1}, \theta_{t}$ are then written onto the \osc objects in the \oscpop. 
+
+
+\graph
+The Euler-step function \code{OscPopulation.\_oneStepForAll()} is straight-forward in principle, but needs to be optimised for reasonable computation times. 
+Originally, running task 1 with $ N = 100$, $K = [0, 4]$ and $dK = 0.1$ took about 45 minutes. 
+Since the computation time likely increases exponentially with $N$ (more neighbouring oscillators have to be considered at \textit{each} step) the full compute time for $N=1000$ would have been unreasonable. 
+Thus, I make use of the \code{numba} package which offers 'decorators' for functions. 
+Decorators are functions which take functions as inputs and return modified functions.
+In this case, the \code{@jit} decorator converts my Euler-step computation function into optimised machine code using the LLVM compiler. 
+This can yield computation speeds similar to C or FORTRAN.\footnote{http://numba.pydata.org/}
+It reduced the compute time for task 1 (with $N = 100$) from 45 minutes down to 4 minutes. 
+%
+To make it work, however, the function needs to take \code{nympy.ndarrays} as inputs, not objects, like originally the case in my object-oriented code. 
+Therefore, I wrote the wrapper function \code{oneStepForAll} around \code{\_oneStepForAll} (which actually does the computation). 
+It retrieves the values from the \oscpop object (a getter), puts them into temporary variables and then calls the optimised function \code{\_oneStepForAll} using those temporary variables (namely, arrays for $\omega, \theta_{s-1}, \theta_{s}$).
+Finally, a setter writes the returned arrays for $\theta_{s-1}, \theta_{s}$ onto the \osc objects in the \oscpop. 
 
 The core \code{\_oneStepForAll} function implements a standard Euler approximation.
-First, the $\theta$ s are stepped through time by handing the value of $\theta_{t}$ over to $\theta_{t-1}$.%
-	\footnote{This is not a whole equation-time step, but a simulation-time step.}
-In the next step, the sum of the difference between the current oscillator $n$ 's $\theta_{t-1}$ and all other oscillators $j$ 's $\theta_{t-1}$ is computed. 
-
-
+First, the $\theta$ are stepped through time by handing the value of $\theta_{s}$ over to $\theta_{s-1}$.
+In the next step, the sum of the the $sin$ of the differences between the last-period $\theta$ of oscillator $n$ ($\theta_{s-1}^n$) and all other oscillators $j$ ($\theta_{s-1}^j$) is computed:
 \begin{align*}
-	sum 					& = \sum_{j = 0}^N = \sin(\theta^j_{t-1} - \theta^n_{t-1}) \\
-\intertext{From this, we can calculate the discrete $\dot{\theta}_t^n$}
-	\dot{\theta}_t^n 		& = \omega_n + \frac{K}{N} *  sum \\
-\intertext{The new $\theta_t$ of oscillator n is then}
-	\theta^n_t 				& = \theta^n_{t-1} + dt \cdot \dot{\theta}_t^n \\
+	sum 					& = \sum_{j = 0}^N = \sin(\theta^j_{s-1} - \theta^n_{s-1}) \\
+\intertext{From this, we can calculate the discrete $\Delta\theta_s^n$}
+	\Delta\theta_s^n 		& = \omega_n + \frac{K}{N} *  sum \\
+\intertext{The new $\theta_s$ of oscillator n is then}
+	\theta^n_s 				& = \theta^n_{s-1} + \delta t \cdot \Delta\theta_s^n \\
 \end{align*}
 This is done for all N oscillators. 
 
-\graph
-After all oscillators have been stepped one simulation step $\delta t$ forward, this is repeated $\frac{T}{\delta t}$ times to get to the final time point $T$.
-At this point, the limiting coherence parameter $r(T)$ is calculated and appended to a list of all $r_K(T)$. 
 
-A new loop with the next $K$ begins until all $K$ values have been run -- the full results are returned as a list which is then graphed.
-A scatter plot of $r(K)$, as opposed to a line diagram, has been chosen since the straight connection between points cannot be assumed.
+
+
+\graph
+After all oscillators have been stepped one simulation step $\delta s$ forward, this is repeated $\frac{T}{\delta t}$ times to get to the final time point $T$.
+At this point, the limiting coherence parameter $r_(T)$ is calculated for the current $K$ and appended to a list of all $r_\infty(K)$. 
+
+A new loop with the next $K$ begins until all $K$ values have been exhausted. 
+The full results are returned as a list which is then graphed.
+A scatter plot of $r_\infty(K)$, as opposed to a continuous line, has been chosen since a straight connection between points cannot be assumed.
 
 
 
 
 
 \subsubsection{Program profile}
-To make the structure more clear and see which parts of the Euler-based simulation take the longest to compute, I profiled my python code. 
-This profile shows which functions called which others (through the arrows) as well as information about the execution of the respective function. 
-After the name, a rectangle shows first the total time spent in this function (in itself and its children), in the line below how much time was spent only in itself and finally how many times the function was called.%
-	\footnote{The latter is not up to scale: to construct the profile, I ran the simulations with only 20\% of the N stated in the task.}
+To make the structure of the code more clear and see which parts of the Euler-based simulation take the longest to compute, I profiled my python code. 
+This profile shows which functions called which others as well as information about the execution of the respective function. 
+After the name of the function, the first line shows the total time spent in this function (in itself and its children), the second how much time was spent only in itself and the third how many times the function was called.
 
 \graph
 The profile of the code for tasks 1 and 2 can be seen in figure \ref{profile12}.
+Even when optimised, the computation time for these tasks is still 1h 30min. 
+As the profile shows, almost all of this time (87\%) is spent in the main computation method \code{\_oneStepForAll}, which was called almost half a million times. 
+The wrapper method retrieved 1.3bn and set over 800m values.
+
+
 \begin{figure}[p]
 	\centering
 	\includegraphics[width=\textwidth]{graphics/profile12.pdf}
@@ -290,14 +314,14 @@ The profile of the code for tasks 1 and 2 can be seen in figure \ref{profile12}.
 
 
 
-
-
-
-
 \subsubsection{Numerical integration}
 The strategy to integrate the consistency equation is to loop through different values of $r$ and check which ones make the right-hand side approximately equal to one. 
 The precision of this approximation can be adjusted by changing the \code{rHysteresis} variable, which sets the acceptable range of values around 1 for the right-hand side of the consistency equation.
-In a loop around this one, we cycle through the different values for K to get the values of the desired $r(K)$ relationship. 
+This is the \code{calc\_r\_integ(K)} function which takes $K$ as an input.
+
+We now cycle through the different values for $K$ in a separate loop to get the values of the desired $r(K)$ relationship.
+Since this is not a computationally-intensive step, I increased the resolution of $K$ to $\delta K = 0.01$. 
+The hysteresis around the left-hand side value is $0.01$ and the step size of candidate $r$ is $\delta r = 0.001$.
 The results are then graphed in figure \ref{1} together with the simulated points.
 
 
@@ -307,13 +331,27 @@ The results are then graphed in figure \ref{1} together with the simulated point
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{graphics/1_K-vs-r_omegaDistr=normal_N=1000_1611577031.pdf}
+	\includegraphics[width=0.9\textwidth]{graphics/1_K-vs-r_omegaDistr=normal_N=1000_1611577031.pdf}
 	\caption{Diagram of limiting $r_\infty$ for different values of K}
 	\label{1}
 \end{figure}
 
 
-The first observation is that 
+The first observation is that, on the whole, the simulation values track the theoretical values quite closely. 
+More precisely, the fit is \textit{very good} for $2<K$, \textit{good} in $0<K<1$ but has large deviations in $1<K<2$. 
+
+My first impulse for improving the fit of the simulation lies in shrinking $\delta t$ to reduce the local and global error (which are proportional to $(\delta t)^2$ and $\delta t$, respectively).
+Such errors happen because ODEs \textit{on paper} are continuous and essentially have infinite precision, which is impossible to achieve \textit{in silico}. 
+In some non-linear dynamical models, such deviations in the discretised simulation can lead to \textit{qualitatively} different outcomes, especially when the system exhibits sensitive depends on initial conditions (ICs).
+I do not believe the global error is large enough to cause the large positive deviations we observe just before the critical value $K_{crit} = 1.5958$. 
+
+Instead, I hypothesise that the high-coherence observations in the range $1<K<1.5$ (which theory predicts should be very close to 0), are due to special sets of ICs. 
+Out of all possible ICs of individual oscillators, a small subset will favour convergence of all oscillators to a (partially) synchronised state. 
+If enough oscillators have correlated ICs, this could lead to higher-than expected coherence in the system.
+If it is true that the outliers in the range $1<K<1.5$ are caused by unlikely constellations of ICs, then increasing N should diminish the occurrence of unlikely starting conditions. 
+The probability of any IC to be coherence-favouring does not increase with N; in fact it may decrease because the union of coherence-favouring ICs between all oscillators shrinks.
+As N gets larger, it thus becomes progressively less likely that a sufficiently large portion of the oscillator population (a 'critical mass') is randomly drawn with collectively-coherence-favouring ICs.
+% eitiher focus on probability of individual oscillators IC to be favouring, or the collectivel ICs probability to be favouring
 
 
 
@@ -327,45 +365,65 @@ The first observation is that
 
 The simulation procedure for is the same as for \runK, with 2 exceptions:
 \begin{enumerate}
-	\item there is still $K$-loop (with limited values $K = [1,2,3]$), but there is no resetting of the population to new random values at the beginning of each such loop.
+	\item there is still a $K$-loop (with limited values $K = [1,2,3]$), but there is no resetting of the population to new random values at the beginning of each such loop.
 	\item $r(t)$ is now calculated at every (simulation!) time step $t$.
 \end{enumerate}
-
-The previous method of assigning new random values to the state variables of all oscillators did not work for some reason here. 
+The previous method of assigning new random values to the state variables of all oscillators did not work here for some reason. 
 Instead, a bug occurred in which the final values of the last run were used as the starting values of a new run.%
-	\footnote{My hypothesis is that this is about memory management in python. Sometimes during other assignment of variables or objects, it merely creates a pointer instead of copying the value into a separate location in memory.}
-Therefore I had to go another way: now I recreate the \oscpop object anew in every loop. 
+	\footnote{.. despite many attempts to fix this bug. My hypothesis is that this is about memory management in python. Sometimes during other assignment of variables or objects, it merely creates a pointer instead of copying the value into a separate location in memory.}
+Therefore I had to go another way: the \oscpop object is created anew in every loop. 
+After the object is initiated with the right distribution of $\omega$, \runT is executed. 
+It loops through all simulation time steps $s$. 
+In one such loop, all oscillators are updated, then \code{calc\_r()} is called to compute $r_s$.
 
-After that, \runT is executed, which calls \code{OscPopulation.calc\_r()} at every time step. 
-\code{calc\_r()} calculates $r(t)$ in one of two different but equivalent ways. 
+\code{calc\_r()} calculates $r_s$ in one of two different but equivalent ways. 
 In one way, actual complex numbers are added up and divided by N. 
 To get a value for $r$, the modulus of the resulting complex number is taken. 
-$$ r_t = \lvert \sum_{n=0}^N e^{\theta^n_t \cdot i} \rvert$$
-The other way is to compute the double sum of real and imaginary component of the complex number (using the $sin()$ and $cos()$ relationships after DeMoivre's and Euler's formula).
-These two sums are also divided by N, yielding the average real and imaginary component of the \oscpop at this time. 
-From there, $r$ can be calculated through a square root:
+$$ r_s = \frac{1}{N}       \cdot       \abs{\sum_{n=0}^N e^{ i \theta^n_s}}$$
+The other way is to compute the double sum of real and imaginary component of the complex number (using the $sin$ and $cos$ relationships after DeMoivre and Euler).
+These two sums are also divided by N, yielding the average real and imaginary component of the \oscpop at simulation time $s$. 
 \begin{align*}
-	realsum 	&= \sum_{n=0}^N \frac{\cos(\theta^n_t)}{N} \\
-	imsum 		&= \sum_{n=0}^N \frac{\sin(\theta^n_t)}{N} \\
-	r 			&= \sqrt{realsum^2 \cdot imsum^2}
+	realsum 	&= \sum_{n=0}^N \frac{\cos(\theta^n_s)}{N} \\
+	imsum 		&= \sum_{n=0}^N \frac{\sin(\theta^n_s)}{N} \\
+\intertext{From there, $r$ can be calculated through a square root:}
+	r_s			&= \sqrt{realsum^2 \cdot imsum^2}
 \end{align*}
-I tried both versions to double check the results and hoping one would give a performance boost over the other, but both have approximately the same speed.
+I tried both versions to double check the results and to see whether one would give a performance boost over the other, but both have approximately the same speed.
 In the end, \code{calc\_r()} returns a list of $r(t)$ which will be appended to a list-of-lists with the $r$ values for all chosen $K$. 
 These different trajectories are once again graphed: figure \ref{2}.
+
+
+
+
 
 \subsubsection{Results}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.8\textwidth]{graphics/2_t-vs-r_omegaDistr=normal_N=1000_1611577412.pdf}
+	\includegraphics[width=0.9\textwidth]{graphics/2_t-vs-r_omegaDistr=normal_N=1000_1611577412.pdf}
 	\caption{$r(t)$ over time for 3 different values of $K$}
 	\label{2}
 \end{figure}
 
 
-
-
-
+Of note is firstly that populations with $K<K_{crit} \approx 1.5985$ do not converge to coherence, while those with $K>K_{crit}$ do. 
+In this first sense, it is in agreement with theory. 
+%
+The second noticeable feature is that when convergence happens, it happens quickly, before $t = 10$.
+% 
+Thirdly, the consistency equation predicts essentially three ranges of $K$ with distinguishable features, as we can see in figure \ref{1}.
+In the first region $0<K<1.5$ $r_\infty$ stays glued to zero. 
+Afterwards, it predicts a sudden, almost discontinuous jump between $K=1.5$ and $K=2$. 
+From $K=2$ onwards, the functional form is logarithmic (or, more approximately, linear).
+The aforementioned jump does not carry $r$ all the way to $r=1$ but only to $r\approx 0.7$ -- there is some way for it to still increase. 
+In this region, $r$ continues to increase but at a slowing pace. 
+In this sense, the $r(t)$ graph confirms the theory as well, as $r$ stabilises at different values depending on $K$. 
+And it does not fluctuate around these values values a lot. 
+We can therefore say that with some confidence that the values in the $r(K)$ diagram are indeed indicative of the \textit{limiting} $r_\infty(K)$. 
+Had there benn a lot of variation around the 'idealised' $r_\infty$ the values we see in the $r(K)$ graph could have consisted merely of random points from within that range of variation. 
+Instead we see that once converged, the coherence of a system does not vary greatly and the points in $r(K)$ are accurate representations of the system. 
+This is good for the regions in which the simulated $r_\infty$ track the theorical closely, and bad for regions where they do not. 
+However, the argument about unlikely coincidences of ICs being the culprit resolves this problem. 
 
 
 
@@ -395,26 +453,26 @@ These different trajectories are once again graphed: figure \ref{2}.
 
 \subsubsection{Program profile}
 The profile of the code for tasks 3, 4 and 5 can be seen in figure \ref{profile345}.
-\begin{landscape}
-\begin{figure}[p]
+%\begin{landscape}
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=26cm]{graphics/profile345.pdf} % can also use angle = 90
+	\includegraphics[width=\textwidth]{graphics/profile345.pdf} % can also use angle = 90
 	\caption{Profile of code for task 3, 4 and 5}
 	\label{profile345}
 \end{figure}
-\end{landscape}
+%\end{landscape}
 
 
 \subsubsection{Results}
 
 \begin{figure}[h]
 	\centering
-	\begin{subfigure}{0.8\textwidth}
+	\begin{subfigure}{0.9\textwidth}
 		\includegraphics[width = \textwidth]{graphics/3_K-vs-r_omegaDistr=uniform_zoomed_N=2000_1611568972.pdf}
 		\caption{zoomed in}
 		\label{3zoomedin}
 	\end{subfigure}
-	\begin{subfigure}{0.8\textwidth}
+	\begin{subfigure}{0.9\textwidth}
 		\includegraphics[width = \textwidth]{graphics/3_K-vs-r_omegaDistr=uniform_N=2000_1611568972.pdf}
 		\label{3zoomedout}
 		\caption{zoomed out, for better comparison with figure \ref{1}}
@@ -456,7 +514,7 @@ The desired initial conditions from the reference object are then written into t
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\textwidth]{graphics/4_t-vs-r_fixedOmegas_omegaDistr=uniform_N=2000_1611570486.pdf}
+	\includegraphics[width=0.9\textwidth]{graphics/4_t-vs-r_fixedOmegas_omegaDistr=uniform_N=2000_1611570486.pdf}
 	\caption{$r(t)$ over time for 10 different initial conditions of $\theta$}
 	\label{4}
 \end{figure}
@@ -484,7 +542,7 @@ The desired initial conditions from the reference object are then written into t
 
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=0.8\textwidth]{graphics/5_t-vs-r_fixedThetas_omegaDistr=uniform_N=2000_1611572031.pdf}
+	\includegraphics[width=0.9\textwidth]{graphics/5_t-vs-r_fixedThetas_omegaDistr=uniform_N=2000_1611572031.pdf}
 	\caption{$r(t)$ over time for 10 different initial conditions of $\omega$}
 	\label{5}
 \end{figure}
