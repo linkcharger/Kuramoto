@@ -8,3 +8,6 @@ kuramoto.out
 kuramoto.run.xml
 kuramoto.synctex.gz
 kuramoto.tex.bak
+__pycache__
+dist
+build
