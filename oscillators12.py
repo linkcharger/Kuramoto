@@ -8,12 +8,17 @@ import time
 from scipy.integrate import quad
 
 
-############################################### options for optimisation #############################################
-#
-# jit
-# 
-# double sum -> even better, average phase, then ...? wait what?
-# 
+############################################### options reading #############################################
+import sys
+
+opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+
+if len(args) != 0: 
+    m = int(args[0])
+else:
+    m = 100
+
 #####################################################################################################################
 
 
@@ -232,7 +237,7 @@ def calc_r_integ(K):
 #%time
 
 #################################### simulation ####################################
-N = 1000             # 1000 
+N = int(1000 * m / 100)            # 1000 
 T = 100             # 100
 dt = 0.01
 Kmax = 4
@@ -288,7 +293,7 @@ plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 2: normal omegas, t-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%time
 
-N = 1000             # 1000
+N = int(1000  * m / 100)           # 1000
 T = 100             # 100
 dt = 0.01
 K_range = [1, 2, 3]

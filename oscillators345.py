@@ -8,12 +8,17 @@ import time
 from scipy.integrate import quad
 
 
-############################################### options for optimisation #############################################
-#
-# jit
-# 
-# double sum -> even better, average phase, then ...? wait what?
-# 
+############################################### options reading #############################################
+import sys
+
+opts = [opt for opt in sys.argv[1:] if opt.startswith("-")]
+args = [arg for arg in sys.argv[1:] if not arg.startswith("-")]
+
+if len(args) != 0: 
+    m = int(args[0])
+else:
+    m = 100
+
 #####################################################################################################################
 
 
@@ -228,7 +233,7 @@ def calc_r_integ(K):
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 3: uniform omegas, K-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%time
-N = 2000                   # 2000    - 100, 100, took 6min
+N = int(2000 * m / 100)                   # 2000    - 100, 100, took 6min
 T = 200                   # 200
 dt = 0.05
 Kmax = 1.5
@@ -278,7 +283,7 @@ plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 #%time
 # --> same natural frequencies as first time, but start at different positions every time
 
-N = 2000                      # 2000
+N = int(2000 * m / 100)                     # 2000
 T = 200                      # 200
 dt = 0.05
 runs = 10
@@ -328,7 +333,7 @@ plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 #%time
 # --> have same positions as first run, but the natural frequencies get changed
 
-N = 2000                  # 2000
+N = int(2000 * m / 100)                 # 2000
 T = 200                 # 200
 dt = 0.05
 runs = 10
