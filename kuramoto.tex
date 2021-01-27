@@ -7,7 +7,7 @@
 \usepackage[
 	margin		= 22mm,
 	top 		= 24mm,
-	bottom 		= 18mm, 
+	bottom 		= 16mm, 
 	footnotesep = 2\baselineskip	
 ]{geometry}			
 \usepackage{placeins}								% adds \FloatBarrier
@@ -169,7 +169,7 @@
 
 
 \title{\vspace{10mm}\huge \bfseries A Study of Kuramoto Oscillators}
-\author{Aaron Schade}
+\author{Aaron Schade \\ Utrecht School of Economics}
 
 
 
@@ -208,8 +208,7 @@
 \graph
 We already showed this in the lecture for the case with the lowest possible number of oscillators, $N=2$ (ignoring the trivial case of $N=1$).
 Therefore, to show that it holds generally, we have to go to the other extreme and check that it still holds for $N \rightarrow \infty$. 
-This in turn means that we will be wanting to take a limit at some point. 
-The simulation later on then fills the gap between $N=2$ and $\infty$ by running the model for specific values of $N$.
+The simulation then fills the gap between $N=2$ and $\infty$ by running the model for specific values of $N$.
 %
 \begin{align*}
 \intertext{Start by substituting in and expanding the term for $\theta_i$:}
@@ -237,7 +236,7 @@ All off-diagonal elements in this matrix thus cancel out, only the diagonal elem
 
 
 \graph
-This means that after the system synchronises the oscillators in its phase-locked component will on average move with the mean natural frequency $\bar{\omega}$. 
+This means that after the system synchronises, the oscillators in its phase-locked component will on average move with the mean natural frequency $\bar{\omega}$. 
 For me, this implication is interesting because of its simplicity. 
 
 Despite the system being potentially very large and the mutual updating patterns very complex, the final outcome is pre-destined by the 'natural' properties of the oscillators before the system even starts. 
@@ -278,7 +277,7 @@ Like with the oscillators, these prices are implicit in the initial conditions (
 \intertext{We can substitute this into (5), such that}
     \dot{\mathcal{H}} 	&= \sum_{i=1}^{N} - \frac{d \phi_i}{d t}\frac{d \phi_i}{d t} \\
     					&= \sum_{i=1}^{N} - \underbrace{\Bigg[ \frac{d \phi_i}{d t} \Bigg]^2}_{\text{$> 0$, thus:}} \\
-    \dot{\mathcal{H}} 	&= \sum_{i=1}^{N} - \Bigg[ \frac{d \phi_i}{d t} \Bigg]^2 \leq 0
+    \dot{\mathcal{H}} 	& \leq 0
 \end{align*}
 
 \graph
@@ -297,6 +296,7 @@ The later numerical studies will confirm this, as once convergence has been reac
 
 To actually calculate these stationary points, the gradient of $\mathcal{H}$ must equal zero. 
 For the gradient overall to equal zero, each of the individual rows must equal zero. 
+I thus look to set the derivative of one oscillator with $\mathcal{H}_i$ to zero.
 %
 \begin{align*}
 \intertext{Resolving one of the double sums of (4), we get}
@@ -305,10 +305,9 @@ For the gradient overall to equal zero, each of the individual rows must equal z
     													0	& = \sum_{j} \sin(\phi_i - \phi_j)  \\
     													0	& = \sum_{j} \Big(\sin(\phi_i) \cos(\phi_j) - \sin(\phi_j) \cos(\phi_i) \Big)  \\
     													0	& = \Big( \sum_{j}\sin(\phi_i) \cos(\phi_j) - \sum_{j} \sin(\phi_j) \cos(\phi_i) \Big) \\
-    													0	& = \Big( \sum_{j}\sin(\phi_i) \cos(\phi_j) - \sum_{j} \sin(\phi_j) \cos(\phi_i) \Big)  \\
-    														& \Rightarrow \sum_{j}\sin(\phi_i) \cos(\phi_j) = \sum_{j} \sin(\phi_j) \cos(\phi_i)  \\
-\intertext{or also}    														
-    													0	& = \sum_j \sin(\phi_i - \phi_j) \\
+    													0	& = \sum_{j}\sin(\phi_i) \cos(\phi_j) - \sum_{j} \sin(\phi_j) \cos(\phi_i)  \\\\
+\Rightarrow \text{extreme points when }    \quad			& \quad \sum_{j}\sin(\phi_i) \cos(\phi_j) = \sum_{j} \sin(\phi_j) \cos(\phi_i)  \\ 
+\text{or also }    							\quad		0	& = \sum_j \sin(\phi_i - \phi_j) 
 \end{align*}
 A sufficient criterion for reaching a stationary point is thus $\phi_i = \phi_j$. 
 %Unfortunately, I did not manage to derive a necessary criterion. 
@@ -319,6 +318,7 @@ A sufficient criterion for reaching a stationary point is thus $\phi_i = \phi_j$
  
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
 \subsection{Solutions in terms of $r$}
 \begin{align}
 \intertext{Show that the stationary solutions of the Kuramoto model satisfies}
@@ -338,7 +338,7 @@ Starting from $\frac{-K}{2N} \sum_{j}(-1) \sin(\phi_i - \phi_j) - (\omega_i - \b
 \intertext{Substituting in $x =\phi_i -\phi_j$:}     
     \sin (\phi_i -\phi_j)  	& = \frac{e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)}}{2i}\\
 \intertext{In the stationary solutions, we can rearrange and substitute as follows:}
-    \frac{K}{2N} \sum_{j}\sin(\phi_i - \phi_j) - (\omega_i - \bar{\omega})  =  0 &\\
+   	0 														& = \frac{K}{2N} \sum_{j}\sin(\phi_i - \phi_j) - (\omega_i - \bar{\omega})  \\
 %
     (\omega_i - \bar{\omega}) = \;  \Delta\omega_i \;		& = \frac{K}{2N} \sum_{j}\sin(\phi_i - \phi_j) \\
     								\Delta\omega_i \;		& = \frac{K}{2N} \sum_{j}\frac{e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)}}{2i}  \\
@@ -347,7 +347,7 @@ Starting from $\frac{-K}{2N} \sum_{j}(-1) \sin(\phi_i - \phi_j) - (\omega_i - \b
     														& = \frac{K}{2} \frac{1}{2i} r (e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}) \\
     														& = \frac{K}{2} r \frac{e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}}{2i}   \\
     														& = \frac{K}{2} r \frac{e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}}{2i}   \\
-    														& = \frac{K}{2} r \sin (\phi_i -\psi)  \\
+    														& = \frac{K}{2} r \sin (\phi_i -\psi) 
 \end{align*}
 
 
@@ -485,7 +485,7 @@ $ \cancel{\quad}$
 \clearpage
 \section{Numerical study}
 
-\addcontentsline{toc}{subsection}{\\\textbf{Normally distributed $\omega$}}
+\addcontentsline{toc}{subsection}{\\\textbf{Normally distributed $\;\omega$}}
 {\Large\textit{Normally distributed $\omega$}}
 \subsection{$r_{\infty}(K)$ -- simulated vs predicted}
 
@@ -554,8 +554,8 @@ Finally, a setter writes the returned arrays for $\theta_{s-1}, \theta_{s}$ onto
 	\caption{Profile of code for task 1 and 2}
 	\label{profile12}
 \end{figure}
-%
-%
+
+\graph
 The core \code{\_oneStepForAll} function implements a standard Euler approximation.
 First, the $\theta$ are stepped through time by handing the value of $\theta_{s}$ over to $\theta_{s-1}$.
 In the next step, the sum of the the $sin$ of the differences between the last-period $\theta$ of oscillator $n$ ($\theta_{s-1}^n$) and all other oscillators $j$ ($\theta_{s-1}^j$) is computed:
@@ -564,7 +564,7 @@ In the next step, the sum of the the $sin$ of the differences between the last-p
 \intertext{From this, we can calculate the discrete $\Delta\theta_s^n$}
 	\Delta\theta_s^n 		& = \omega_n + \frac{K}{N} *  sum \\
 \intertext{The new $\theta_s$ of oscillator n is then}
-	\theta^n_s 				& = \theta^n_{s-1} + \delta t \cdot \Delta\theta_s^n \\
+	\theta^n_s 				& = \theta^n_{s-1} + \delta t \cdot \Delta\theta_s^n 
 \end{align*}
 This is done for all N oscillators. 
 
@@ -642,6 +642,7 @@ I do not believe the global error is large enough to cause the large positive de
 	\label{1alt}
 \end{figure}
 
+\graph
 Instead, I hypothesise that the high-coherence observations in the range $1<K<1.5$ (which theory predicts should be very close to 0), are due to special sets of ICs. 
 Out of all possible ICs of individual oscillators, a small subset will favour convergence of all oscillators to a (partially) synchronised state. 
 If enough oscillators have correlated ICs, this could lead to higher-than expected coherence in the system.
@@ -663,7 +664,9 @@ In the alternative runs in figure \ref{1alt}, the simulated values are much clos
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\clearpage
-\subsection{$r(t)$ for $K = [1, 2,3]$} \label{r(t)}
+\subsection{$r(t)$ for $K = [1, 1.6, 2, 3]$\footnote{Out of curiosity, I added the cases for $K=1.6$ and $K=3$, those being very close to and far above the critical value, respectively.}}  
+\label{r(t)}
+
 
 The simulation procedure for is the same as for \runK, with 2 exceptions:
 \begin{enumerate}
@@ -681,12 +684,12 @@ In one such loop, all oscillators are updated, then \code{calc\_r()} is called t
 \code{calc\_r()} calculates $r_s$ in one of two different but equivalent ways. 
 In one way, actual complex numbers are added up and divided by N. 
 To get a value for $r$, the modulus of the resulting complex number is taken. 
-$$ r_s = \frac{1}{N}       \cdot       \abs{\sum_{n=0}^N e^{ i \theta^n_s}}$$
+$$ r_s = \frac{1}{N}       \cdot       \abs{\sum_{n=1}^N e^{ i \theta^n_s}}$$
 The other way is to compute the double sum of real and imaginary component of the complex number (using the $sin$ and $cos$ relationships after DeMoivre and Euler).
-These two sums are also divided by N, yielding the average real and imaginary component of the \oscpop at simulation time $s$. 
+These two sums are also divided by N, yielding the average real and imaginary component of the \oscpop at simulation time~$s$. 
 \begin{align*}
-	realsum 	&= \sum_{n=0}^N \frac{\cos(\theta^n_s)}{N} \\
-	imsum 		&= \sum_{n=0}^N \frac{\sin(\theta^n_s)}{N} \\
+	realsum 	&= \sum_{n=1}^N \frac{\cos(\theta^n_s)}{N} \\
+	imsum 		&= \sum_{n=1}^N \frac{\sin(\theta^n_s)}{N} \\
 \intertext{From there, $r$ can be calculated through a square root:}
 	r_s			&= \sqrt{realsum^2 \cdot imsum^2}
 \end{align*}
@@ -699,11 +702,11 @@ These different trajectories are once again graphed: figure \ref{2}.
 
 
 
-\subsubsection{Results\footnote{Out of curiosity, I added the cases for $K=1.6$ and $K=3$, those being very close to and far above the critical value, respectively.}}
+\subsubsection{Results}
 
 Of note in figure \ref{2} is firstly that populations with $K<K_{crit} \approx 1.5985$ do not converge to coherence, while those with $K>K_{crit}$ do. 
 In this first sense, it is in agreement with theory. 
-And when convergence happens, it happens quickly, before $t = 10$.
+When convergence happens, it happens quickly, before $t = 20$.
 
 \begin{figure}[h]
 	\centering
@@ -714,26 +717,23 @@ And when convergence happens, it happens quickly, before $t = 10$.
 
 
 \graph
-Next, figure \ref{2} confirms theory in the sense that the simulated points in figure \ref{1} are a good representation of the system and not partial to large random fluctuations (which would make the simulated points in the diagram more arbitrary).
+Next, figure \ref{2} confirms theory in the sense that the simulated points in figure \ref{1} are a good representation of the system and not partial to large random fluctuations (which would make the simulated points in figure \ref{1} more arbitrary).
 The results of this section thus re-affirm the results in section \ref{1results}. 
 The argument is as follows.
 
-The consistency equation predicts essentially three ranges of $K$ with distinguishable features, as we can see in figure \ref{1}.
+The consistency equation predicts essentially three ranges of $K$ with distinguishable features.
 In the first region $0<K<1.5$, $r_\infty$ stays glued to zero. 
 Afterwards, it predicts a sudden, almost discontinuous jump between $K=1.5$ and $K=2$. 
 From $K=2$ onwards, the functional form is logarithmic (or, more approximately, linear).
-The aforementioned jump does not carry $r$ all the way to $r=1$ but only to $r\approx 0.7$ -- there is some way for it to still increase. 
+The aforementioned jump does not carry $r$ all the way to $r=1$ but only to $r\approx 0.7$ -- there is still some way for it to increase. 
 In this region, $r$ continues to increase but at a slowing pace. 
 
-In this sense, the $r(t)$ graph confirms the theory as well, as all runs with $K>K_{crit}$ stabilise at their own, distinct level of $r$ -- they do not jump between totally synchronised and totally unsynchronised.
+In this sense, the $r(t)$ graph confirms the theory as well, because all runs with $K>K_{crit}$ stabilise at their own, distinct level of $r$ -- they do not jump between totally synchronised and totally unsynchronised.
 We can therefore say that with some confidence that the values in the $r(K)$ diagram are indeed indicative of the \textit{limiting} $r_\infty(K)$. 
-Had there been a lot of variation around the 'idealised' $r_\infty$ the values we see in the $r(K)$ graph could have consisted merely of random points from within that range of variation. 
+Had there been a lot of variation around the 'idealised' $r_\infty$, the values we see in the $r(K)$ graph could have consisted merely of random points from within that range of variation. 
 Instead we see that once converged, the coherence of a system does not vary greatly and the points in $r(K)$ are accurate representations of the system. 
 The alternative run in figure \ref{2alt} somewhat confirms this:
 The system with $K=1.6$ did not manage to synchronise this time, but instead of oscillating between very high $r$ and low $r$, it stays in the lower region.
-
-This is good for the regions in which the simulated $r_\infty$ track the theoretical closely, and bad for regions where they do not. 
-However, the argument about unlikely coincidences of ICs being the culprit resolves this problem. 
 
 \graph
 Lastly, the theoretical results from section \ref{stability} on stability are thereby also confirmed: 
@@ -766,7 +766,7 @@ The higher the coupling coefficient $K$, the stronger is that stability and the 
 \clearpage
 %\FloatBarrier
 \bigskip\noindent
-{\Large\textit{Uniformly distributed $\omega$}}
+{\Large\textit{Uniformly distributed $\;\omega$}}
 \addcontentsline{toc}{subsection}{\\\textbf{Uniformly distributed $\omega$}}
 
 
@@ -792,9 +792,9 @@ The jump from mostly unsynchronised to mostly synchronised happens over a smalle
 This represents a $\Delta r = 0.7$ within $\Delta K = 0.05$ against a $\Delta r = 0.6$ within $\Delta K = 0.5$ in the case of normally distributed $\omega$.
 
 Secondly, figures \ref{3zoomedout} and \ref{3-1} show that the critical point is lower for the uniform distribution ($K_{crit} \approx 0.6$) than for the normal distribution ($K_{crit} \approx 1.6$). 
-This indicates that a uniform distribution of natural frequencies favours convergence to a synchronised state even when oscillators are coupled much weaker. 
+This indicates that a uniform distribution of natural frequencies favours convergence to a synchronised state even when oscillators are coupled much more weakly. 
 This is mostly likely due to the fact that the given uniform distribution greatly restricts the range that any $\omega$ can take. 
-Now, $-\frac{1}{2} \leq \omega \leq \frac{1}{2}$ when before, it could routinely take values as high or low as $\pm 1$ (68\% of $\omega$ will lie in this range).
+Now $\omega$ at most goes to $\pm \frac{1}{2}$, when before it could routinely take values as high or low as $\pm 1$ (68\% of $\omega$ will lie in this range).
 A larger range of natural frequencies makes synchronisation harder. 
 Thus a stronger coupling force is required to make our normally-distributed system synchronise.%
 	\footnote{This is not true generally, however. It just so happens that the uniform distribution given to us is much narrower than the (Standard) normal distribution given to us.}
@@ -832,15 +832,15 @@ Thus a stronger coupling force is required to make our normally-distributed syst
 To run simulations repeatedly while keeping selected initial conditions the same, I implemented the following. 
 First, a 'reference' \oscpop object is initiated. 
 Then a loop begins in which a 'temporary' \oscpop objects is initialised with all new random values. 
-The desired initial conditions from the reference object are then written into the temporary object: here, the $\omega$ are kept, in section \ref{keepthetas} the $\theta$. 
-\code{runT()} is executed on the temporary object and the returned trajectory saved into another list-of-lists. 
+The desired initial conditions from the reference object are then written into the temporary object: here, the $\omega$ are kept, in section \ref{keepthetas} the $\theta_0$. 
+\code{runT()} is executed on the temporary object and the returned trajectory saved into another list-of-lists to be displayed in the diagrams below.
 
 
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\textwidth]{graphics/4_t-vs-r_fixedOmegas_omegaDistr=uniform_N=2000_1611570486.pdf}
-	\caption{$r(t)$ over time for 10 different initial conditions of $\theta$}
+	\caption{$r(t)$ over time for 10 different initial conditions of $\theta_0$}
 	\label{4}
 \end{figure}
 
@@ -863,7 +863,7 @@ The desired initial conditions from the reference object are then written into t
 
 
 
-
+\clearpage
 \subsection{Interpretation}
 
 To my eye, the graphs in figures \ref{4} and \ref{5} look very similar. 
@@ -872,7 +872,8 @@ They also converge to the same level, $r_\infty \approx 0.95$.
 
 If I squint, I can potentially see a greater variance around the stationary point in the case of changing the $\omega$ (figure \ref{5}) as opposed to changing the $\theta_0$. 
 This could be interpreted as the initial conditions in $\omega$ having a greater impact on the future of the system than the $\theta_0$. 
-But this visible effect is very small and most likely random noise. 
+But the effect visible in the diagrams is very small and most likely random noise. 
+This view is supported by the re-runs of these task, where no such difference in variation is discernible, see figures \ref{4re} and \ref{5re}.
 
 \graph
 The phenomenon to be explained is then why the two cases do \textit{not} differ significantly. 
@@ -884,6 +885,20 @@ My conclusion is therefore that \textit{qualitative} changes to the oscillators'
 
 
 
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{0.62\textwidth}
+		\includegraphics[width=\textwidth]{graphics/4_t-vs-r_fixedOmegas_omegaDistr=uniform_N=2000_1611599683.pdf}
+		\caption{Re-run of task 4}
+		\label{4re}
+	\end{subfigure}
+	\begin{subfigure}{0.62\textwidth}
+		\includegraphics[width=\textwidth]{graphics/5_t-vs-r_fixedThetas_omegaDistr=uniform_N=2000_1611601465.pdf}
+		\caption{Re-run of task 5}
+		\label{5re}
+	\end{subfigure}
+	\caption{Alternative runs of tasks 4 and 5}
+\end{figure}
 
 
 
