@@ -7,7 +7,7 @@
 \usepackage[
 	margin		= 22mm,
 	top 		= 24mm,
-	bottom 		= 10mm, 
+	bottom 		= 18mm, 
 	footnotesep = 2\baselineskip	
 ]{geometry}			
 \usepackage{placeins}								% adds \FloatBarrier
@@ -15,6 +15,11 @@
 \usepackage{subcaption}								% adds subfigure
 \usepackage{pdflscape}								% landscape pages
 \usepackage{commath}								% adds vertical bar for \abs
+\usepackage{amssymb}
+\usepackage{tikz}
+    \usetikzlibrary{trees}
+    \usetikzlibrary{matrix, positioning}
+\usepackage[makeroom]{cancel}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,7 +87,7 @@
 
 
 
-\usepackage[multiple, hang, bottom]{footmisc}
+\usepackage[hang, bottom, stable]{footmisc}									% stables allows for \footnote{} command in section (but doesnt work with footnotemark), otherwise do \protect\foonote_whatever_command
 \setlength{\footnotemargin}{3mm}
 
 
@@ -163,7 +168,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\title{\vspace{30mm}\huge \bfseries A Study of Kuramoto Oscillators}
+\title{\vspace{10mm}\huge \bfseries A Study of Kuramoto Oscillators}
 \author{Aaron Schade}
 
 
@@ -185,6 +190,284 @@
 \section{Theoretical study}
 
 
+\addcontentsline{toc}{subsection}{\\\textbf{Lyapunov and stability}}
+{\Large\textbf{Lyapunov and stability}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Mean natural frequency}
+
+
+\begin{align}
+\intertext{Show that}
+	\frac{d}{d t} \Bigg( \frac{1}{N} \sum_{i=1}^{N} \omega \Bigg) = &\; \bar{\omega}  
+\intertext{where}
+	& \bar{\omega}  := \frac{1}{N} \sum_{i=1}^{N} \omega_i    
+\end{align}
+
+\noindent\rule{\textwidth}{0.25mm}
+
+\graph
+We already showed this in the lecture for the case with the lowest possible number of oscillators, $N=2$ (ignoring the trivial case of $N=1$).
+Therefore, to show that it holds generally, we have to go to the other extreme and check that it still holds for $N \rightarrow \infty$. 
+This in turn means that we will be wanting to take a limit at some point. 
+The simulation later on then fills the gap between $N=2$ and $\infty$ by running the model for specific values of $N$.
+%
+\begin{align*}
+\intertext{Start by substituting in and expanding the term for $\theta_i$:}
+	\frac{d }{d t}   \Big( \frac{1}{N}\sum_{i=1}^N({\theta_i}) \Big)	& = \frac{1}{N}\sum_{i=1}^N \Big( {\frac{d \theta_i}{d t}}\Big) \\
+   																		& = \frac{1}{N}\sum_{i=1}^N \Bigg[ \omega_i +\frac{K}{N} \sum_{j=1}^{N} \sin(\theta_j (t) - \theta_i (t)) \Bigg] \\
+    																	& = \frac{1}{N}\sum_{i=1}^N \omega_i + \frac{1}{N}\frac{K}{N} \sum_{i=1}^N\sum_{j=1}^{N} \sin(\theta_j (t) - \theta_i (t)) \\
+    																	& = \frac{1}{N}\sum_{i=1}^N \omega_i + \frac{1}{N}\frac{K}{N} \sum_{i=1}^N \Big( \sin(\theta_1 (t) - \theta_i (t)) + \sin(\theta_2 (t) - \theta_i (t)) + \ldots + \sin(\theta_N (t) - \theta_i (t))\Big) \\ 
+% 
+%    																																	
+\intertext{
+After expanding the second sum, we have essentially a matrix of all the interaction terms. 
+When $i \neq j$, we can make use of the fact that $sin$ is an odd function. 
+The two symmetrical cases will cancel out to zero. 
+All off-diagonal elements in this matrix thus cancel out, only the diagonal elements with $i = j$ remain:}
+   	\frac{d }{d t}   \Big( \frac{1}{N}\sum_{i=1}^N({\theta_i}) \Big)	& = \frac{1}{N}\sum_{i=1}^N \omega_i + \frac{1}{N}\frac{K}{N} \Big( \sin(\theta_1 (t) - \theta_1 (t)) + \sin(\theta_2 (t) - \theta_2 (t)) + \ldots + \sin(\theta_N (t) - \theta_N (t))\Big) \\
+    																	& = \frac{1}{N}\sum_{i=1}^N \omega_i + \frac{1}{N}\frac{K}{N} \Big( 0 \Big) \\
+    																	& = \underbrace{\frac{1}{N}\sum_{i=1}^N \omega_i}_{\text{converging sequence}}  \\
+%    
+    & \lim_{N \to \infty} \frac{1}{N}\sum_{i=1}^N \omega_i \; \Rightarrow \bar{\omega} \\
+%
+%
+\intertext{Therefore} 
+    \frac{d }{d t}   \Big( \frac{1}{N}\sum_{i=1}^N({\theta_i}) \Big) &= \bar{\omega}
+\end{align*}
+
+
+\graph
+This means that after the system synchronises the oscillators in its phase-locked component will on average move with the mean natural frequency $\bar{\omega}$. 
+For me, this implication is interesting because of its simplicity. 
+
+Despite the system being potentially very large and the mutual updating patterns very complex, the final outcome is pre-destined by the 'natural' properties of the oscillators before the system even starts. 
+They can interact in an almost uncountably-large number of ways, yet in the end all that complexity degenerates and collapses to a simple average. 
+I suppose this is what is called self-organisation, and often in the real world we actually desire this degenerating behaviour of a system. 
+It is reminiscent of the efficient market hypothesis in this sense: a large number of agents and products interact, creating a staggering number of potential behaviours and allocations. 
+Yet in the end, one unique price emerges for each good, balancing all agents' demands and standardising their (buying and selling) behaviour. 
+Like with the oscillators, these prices are implicit in the initial conditions (allocations) in this system, but need a complicated process to manifest themselves. 
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Lyapunov function $\mathcal{H}$}\label{stability}
+\begin{align}
+\intertext{In the rotating reference frame with $\omega=\bar{\omega}$ and $\phi_i := \theta_i - \bar{\omega}$, the Kuramoto model becomes}
+    \frac{d \phi_i}{d t} & = (\omega_i - \bar{\omega}) +\frac{K}{N} \sum_{j=1}^{N} sin \big( \phi_j - \phi_i\big) 
+%
+%
+\intertext{Show that}
+    \mathcal{H} & := -\frac{K}{2N} \sum_{i,j} \cos (\phi_i - \phi_j) - \sum_{i=1}^{N} (\omega_i- \bar{\omega}) \phi_i
+\intertext{is a Lyapunov function, ie. that}
+    \dot{\mathcal{H}} & := \sum_{i=1}^{N}       \underbrace{\frac{\partial \mathcal{H}}{\partial \phi_i}}_{\text{to be calculated}}     \cdot    \underbrace{\frac{d \phi_i}{d t}}_{\text{known from (3) }}  \; \leq \; 0
+\end{align}
+\noindent\rule{\textwidth}{0.25mm}
+\vspace{-5mm}
+\begin{align*}
+\intertext{Start by expanding out the summations and taking the derivative of $\cos$}
+    \frac{\partial \mathcal{H}}{\partial \phi_i} = &  -\frac{K}{2N} \sum_{i}^{N}\sum_{j}^{N} \big( - sin(\phi_i - \phi_j) \big) - \sum_{i=1}^N(\omega_i -\bar{\omega})\\
+    											 = &  -\frac{K}{2N} \sum_{i}^{N}\sum_{j}^{N} \big( - sin(\phi_j - \phi_i) \big) - \sum_{i=1}^N(\omega_i -\bar{\omega})\\
+    											 = &  (-1) \Bigg[ \frac{K}{2N} \sum_{i}^{N}\sum_{j}^{N} sin(\phi_i - \phi_j) + \sum_{i=1}^N(\omega_i -\bar{\omega}) \Bigg] \\
+    											 = &  - \frac{d \phi_i}{d t}
+\intertext{We can substitute this into (5), such that}
+    \dot{\mathcal{H}} 	&= \sum_{i=1}^{N} - \frac{d \phi_i}{d t}\frac{d \phi_i}{d t} \\
+    					&= \sum_{i=1}^{N} - \underbrace{\Bigg[ \frac{d \phi_i}{d t} \Bigg]^2}_{\text{$> 0$, thus:}} \\
+    \dot{\mathcal{H}} 	&= \sum_{i=1}^{N} - \Bigg[ \frac{d \phi_i}{d t} \Bigg]^2 \leq 0
+\end{align*}
+
+\graph
+The system having a Lyapunov function $\mathcal{H}$ whose derivative $\dot{\mathcal{H}}$ is always negative means that after small perturbations to the stationary solutions $\mathcal{H}$, the system will return to that stationary solution and not spiral outwards and diverge. 
+The solutions are therefore \textit{stable} stationary points. 
+The later numerical studies will confirm this, as once convergence has been reached, the state of the system does not vary strongly but always converges back to the same stationary point (see figure \ref{2}).
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Extreme points}
+
+To actually calculate these stationary points, the gradient of $\mathcal{H}$ must equal zero. 
+For the gradient overall to equal zero, each of the individual rows must equal zero. 
+%
+\begin{align*}
+\intertext{Resolving one of the double sums of (4), we get}
+	\mathcal{H}_i 											& = -\frac{K}{2N} \sum_{j} \cos (\phi_i - \phi_j) -  (\omega_i- \bar{\omega}) \phi_i    \\
+    \frac{\partial \mathcal{H}_i}{\partial \phi_i} 			& = \frac{-K}{2N} \sum_{j}-\sin(\phi_i - \phi_j) - \underbrace{(\omega_i - \bar{\omega})}_{\omega_i = \bar{\omega} \; \Rightarrow \;0}  =  0 \\
+    													0	& = \sum_{j} \sin(\phi_i - \phi_j)  \\
+    													0	& = \sum_{j} \Big(\sin(\phi_i) \cos(\phi_j) - \sin(\phi_j) \cos(\phi_i) \Big)  \\
+    													0	& = \Big( \sum_{j}\sin(\phi_i) \cos(\phi_j) - \sum_{j} \sin(\phi_j) \cos(\phi_i) \Big) \\
+    													0	& = \Big( \sum_{j}\sin(\phi_i) \cos(\phi_j) - \sum_{j} \sin(\phi_j) \cos(\phi_i) \Big)  \\
+    														& \Rightarrow \sum_{j}\sin(\phi_i) \cos(\phi_j) = \sum_{j} \sin(\phi_j) \cos(\phi_i)  \\
+\intertext{or also}    														
+    													0	& = \sum_j \sin(\phi_i - \phi_j) \\
+\end{align*}
+A sufficient criterion for reaching a stationary point is thus $\phi_i = \phi_j$. 
+%Unfortunately, I did not manage to derive a necessary criterion. 
+ 
+ 
+ 
+
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Solutions in terms of $r$}
+\begin{align}
+\intertext{Show that the stationary solutions of the Kuramoto model satisfies}
+    \Delta(\omega_i)   	& =   Kr \sin(\phi_i -\psi)
+\intertext{where}
+	r e^{i\Psi}    		& := \frac{1}{N}\sum_{j=1}^{N}e^{i\phi_j}
+\end{align}
+\noindent\rule{\textwidth}{0.25mm}
+
+\graph
+Starting from $\frac{-K}{2N} \sum_{j}(-1) \sin(\phi_i - \phi_j) - (\omega_i - \bar{\omega}) \; = \; 0 $, let's use the identity of a complex exponential function according to which the imaginary part of a function can be defined as
+\begin{align*}
+\intertext{We can rearrange Euler's formula}
+	e^{i x} 				& = \cos x + i \sin x
+\intertext{into}
+    \sin(x)  				& = \frac{e^{i x} - e^{-i x}}{2i}
+\intertext{Substituting in $x =\phi_i -\phi_j$:}     
+    \sin (\phi_i -\phi_j)  	& = \frac{e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)}}{2i}\\
+\intertext{In the stationary solutions, we can rearrange and substitute as follows:}
+    \frac{K}{2N} \sum_{j}\sin(\phi_i - \phi_j) - (\omega_i - \bar{\omega})  =  0 &\\
+%
+    (\omega_i - \bar{\omega}) = \;  \Delta\omega_i \;		& = \frac{K}{2N} \sum_{j}\sin(\phi_i - \phi_j) \\
+    								\Delta\omega_i \;		& = \frac{K}{2N} \sum_{j}\frac{e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)}}{2i}  \\
+    														& = \frac{K}{2N} \frac{1}{2i} \sum_{j} (e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)} ) \\
+    														& = \frac{K}{2} \frac{1}{2i} \cancel{\frac{1}{N}}\cancel{\sum_{j}} ( e^{i (\phi_i -\phi_j)}-e^{-i(\phi_i -\phi_j)} ) \\
+    														& = \frac{K}{2} \frac{1}{2i} r (e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}) \\
+    														& = \frac{K}{2} r \frac{e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}}{2i}   \\
+    														& = \frac{K}{2} r \frac{e^{i (\phi_i -\psi)}-e^{-i(\phi_i -\psi)}}{2i}   \\
+    														& = \frac{K}{2} r \sin (\phi_i -\psi)  \\
+\end{align*}
+
+
+%From here, it is possible to identify the order parameter as the sine function corresponds to its imaginary part
+%\begin{align*}
+%    r e^{i\Psi}= \frac{1}{N}\sum_{j=1}^{N}e^{i\phi_j}\\
+%    r e^{i (\phi_i -\Psi)}= \frac{1}{N}\sum_{j=1}^{N}e^{i (\phi_i -\phi_j)}\\
+%    r e^{i (\phi_i -\Psi)}= \frac{1}{N}\sum_{j=1}^{N}e^{i (\phi_i -\phi_j)}\\
+%    r e^{i (\phi_i -\Psi)}=r sin(\phi_i -\Psi) 
+%\end{align*}
+%
+%
+%
+
+
+
+
+
+
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\addcontentsline{toc}{subsection}{\\\textbf{Model with $N$ identical oscillators}}\noindent
+{\Large\textbf{Model with $N$ identical oscillators}}
+
+
+
+\subsection{Model in terms of r}
+
+\begin{align}
+\intertext{Show that the Kuramoto model with identical ($\omega_i = \omega$) oscillators}
+    \dot{\theta_i}(t) = \omega+ \frac{K}{N} \sum_{j=1}^{N} \sin(\theta_{j}(t)- \theta_{i}(t))
+\intertext{can be expressed in terms of order parameter $r$ as}
+    \dot{\theta_i}(t)= r(t) \sin(\psi(t)- \theta_i (t))
+\end{align}
+when $K=1$ and $\omega = 0$.
+
+\noindent\rule{\textwidth}{0.25mm}
+\begin{align*}
+\intertext{Using the trigonometric identity that $\sin(\alpha - \beta) = \sin\alpha\cos\beta  - \cos\alpha\sin\beta$ again, we can say that}
+    \dot{\theta_i}(t) 			& = 0 + \frac{1}{N} \sum_{j=1}^{N} \sin(\theta_{j} - \theta_{i}) \\
+       							&= \frac{1}{N} \sum_{j=1}^{N} \Big( \sin\theta_{j}\cos\theta_{i} - \cos\theta_{j}\sin\theta_i \Big) \\
+       							&= \frac{1}{N} \sum_{j=1}^{N} \Big( \cos\theta_{i}\sin\theta_{j} - \sin\theta_i\cos\theta_{j} \Big) \\
+       							&= \frac{1}{N}  \Big( \sum_{j=1}^{N}\cos\theta_{i} \sum_{j=1}^{N}\sin\theta_{j} - \sum_{j=1}^{N} \sin\theta_i \sum_{j=1}^{N}\cos\theta_{j} \Big) \\
+       							&= \frac{1}{N}  \Big( N\cos\theta_{i} \underbrace{\sum_{j=1}^{N}\sin\theta_{j}}_{\sin \Psi} - N \sin\theta_i \underbrace{\sum_{j=1}^{N}\cos\theta_{j}}_{\cos \Psi} \Big) \\
+       							&= \cancel{\frac{1}{N} N} \cos\theta_i \sin \Psi - \cancel{\frac{1}{N} N} \sin\theta_i \cos \Psi \\
+       							&= \underbrace{\cos\theta_i }_{m}\sin \Psi -  \underbrace{\sin\theta_i}_{n} \cos \Psi \\
+      \dot{\theta_i}(t)			&= m \sin \Psi- n \cos \Psi \\
+       							&= r \sin (\Psi- \theta_i) = r (t) \sin (\Psi (t) - \theta_i (t)) 
+\end{align*}
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Gradient system} 
+
+\begin{align}
+\intertext{Show that (8) is a gradient system, such that}
+	\dot{\theta_i}(t)= \frac{\partial U}{\partial \theta_i}
+\intertext{for}
+    U(\theta_1, \ldots, \theta_N) & := \frac{1}{2N} \sum_{i,j=1}^{N} \cos(\theta_i - \theta_j)
+\end{align}
+%\noindent\rule{\textwidth}{0.25mm}
+\begin{align*}
+\intertext{Start by expanding $U$}
+	U(\theta_1, \ldots, \theta_N)   & = \frac{1}{2N} \sum_{j=1}^{N}\sum_{i=1}^{N} \cos(\theta_i - \theta_j)  = \frac{1}{2N} \sum_{j=1}^{N}\sum_{i=1}^{N} \Big( \cos\theta_i\cos\theta_j +\sin\theta_i\sin\theta_j\Big) \\
+    								& = \frac{1}{2N} \sum_{j=1}^{N} \Big( \cos^2\theta_i + 2\sin\theta_i \sin\theta_j +\sin^2\theta_j+2\cos\theta_i\cos\theta_j + \cos^2 \theta_j +\sin^2\theta_i \Big) \\
+\intertext{From here, we can show that the gradient of this function is equivalent to (8):}
+    \frac{\partial U}{\partial \theta_i} 	& =  \frac{1}{2N} \sum_{j=1}^{N} \Big(  \cancel{-2 \sin\theta_i \cos\theta_i} + 2 \cos\theta_i \sin\theta_j - 2\sin\theta_i\cos\theta_j + \cancel{2\cos\theta_i\sin\theta_i} \Big)\\
+											& =  \frac{1}{2N} \sum_{j=1}^{N} 2 \Big( \cos\theta_i \sin\theta_j - \sin\theta_i\cos\theta_j     \Big) \\
+											& =  \frac{1}{2N} \sum_{j=1}^{N} 2 \Big(  \sin( \theta_j - \theta_i ) \Big) \\
+	\frac{\partial U}{\partial \theta_i}	& =  \underbrace{\frac{1}{N} \sum_{j=1}^{N} \Big(  \sin( \theta_j - \theta_i ) \Big)}_{\text{with $\omega=0$ and $k=1$}} = \dot{\theta_i}(t)
+\end{align*}
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$U$ in terms of $r$}
+
+ 
+\begin{align*}
+\intertext{Using another trigonometric identiy ($\cos(\alpha + \beta) = \cos\alpha\cos\beta - \sin\alpha\sin\beta$), we can expand $U$ a different way in order to express it in terms of $r$:}
+    U(\theta_1, \ldots, \theta_N) 	& = \frac{1}{2N} \sum_{j=1}^{N}\sum_{i=1}^{N} \cos(\theta_i - \theta_j) \\
+    								& = \frac{1}{2N} \sum_{j=1}^{N}\sum_{i=1}^{N} \Big( \cos\theta_i\cos\theta_j \Big) + \sum_{j=1}^{N}\sum_{i=1}^{N} \Big( \sin\theta_i\sin\theta_j\Big) \\
+    								& = \frac{1}{2N} \Bigg[ \sum_{j=1}^{N}  \Big( \cos\theta_i \Big)^2 + \sum_{j=1}^{N} \Big( \sin\theta_i\Big)^2 \Bigg] \\
+    								& = \frac{1}{2N} \Bigg[ N (\cos\theta_i)^2 +  N  (\sin\theta_i)^2 \Bigg] \\
+    								& = \frac{1}{2}\cancel{\frac{N}{N}} \Big[  (\cos\theta_i)^2 +  N (\sin\theta_i)^2 \Big] \\
+    								& = \frac{1}{2} \Big[ \underbrace{\underbrace{(\cos\theta_i)^2}_{a^2} +  \underbrace{(\sin\theta_i)^2}_{b^2}}_{ a^2 \  + \ b^2 \ = \ r^2} \Big] \\
+    								& = \frac{1}{2} r^2 
+\end{align*}    
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Conservation of mean phase}
+
+$ \cancel{\quad}$
+
+
+
+
+
+
+
+
 
 
 
@@ -199,10 +482,11 @@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
 \section{Numerical study}
 
-\addcontentsline{toc}{subsection}{\\\textbf{Omegas normally distributed}}
-{\Large\textbf{Omegas normally distributed}}
+\addcontentsline{toc}{subsection}{\\\textbf{Normally distributed $\omega$}}
+{\Large\textit{Normally distributed $\omega$}}
 \subsection{$r_{\infty}(K)$ -- simulated vs predicted}
 
 
@@ -264,6 +548,14 @@ Therefore, I wrote the wrapper function \code{oneStepForAll} around \code{\_oneS
 It retrieves the values from the \oscpop object (a getter), puts them into temporary variables and then calls the optimised function \code{\_oneStepForAll} using those temporary variables (namely, arrays for $\omega, \theta_{s-1}, \theta_{s}$).
 Finally, a setter writes the returned arrays for $\theta_{s-1}, \theta_{s}$ onto the \osc objects in the \oscpop. 
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{graphics/profile12a.pdf}
+	\caption{Profile of code for task 1 and 2}
+	\label{profile12}
+\end{figure}
+%
+%
 The core \code{\_oneStepForAll} function implements a standard Euler approximation.
 First, the $\theta$ are stepped through time by handing the value of $\theta_{s}$ over to $\theta_{s-1}$.
 In the next step, the sum of the the $sin$ of the differences between the last-period $\theta$ of oscillator $n$ ($\theta_{s-1}^n$) and all other oscillators $j$ ($\theta_{s-1}^j$) is computed:
@@ -303,13 +595,6 @@ As the profile shows, almost all of this time (87\%) is spent in the main comput
 The wrapper method retrieved 1.3bn and set over 800m values.
 
 
-\begin{figure}[p]
-	\centering
-	\includegraphics[width=\textwidth]{graphics/profile12.pdf}
-	\caption{Profile of code for task 1 and 2}
-	\label{profile12}
-\end{figure}
-
 
 
 
@@ -327,7 +612,7 @@ The results are then graphed in figure \ref{1} together with the simulated point
 
 
 
-\subsubsection{Results}
+\subsubsection{Results}\label{1results}
 
 \begin{figure}[H]
 	\centering
@@ -342,8 +627,20 @@ More precisely, the fit is \textit{very good} for $2<K$, \textit{good} in $0<K<1
 
 My first impulse for improving the fit of the simulation lies in shrinking $\delta t$ to reduce the local and global error (which are proportional to $(\delta t)^2$ and $\delta t$, respectively).
 Such errors happen because ODEs \textit{on paper} are continuous and essentially have infinite precision, which is impossible to achieve \textit{in silico}. 
-In some non-linear dynamical models, such deviations in the discretised simulation can lead to \textit{qualitatively} different outcomes, especially when the system exhibits sensitive depends on initial conditions (ICs).
+In some non-linear dynamical models, such deviations in the discretised simulation can lead to \textit{qualitatively} different outcomes, especially when the system exhibits sensitive dependence on initial conditions (ICs).
 I do not believe the global error is large enough to cause the large positive deviations we observe just before the critical value $K_{crit} = 1.5958$. 
+
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{.45\textwidth}
+		\includegraphics[width=1\textwidth]{graphics/1_K-vs-r_omegaDistr=normal_N=1000_1611593606.pdf}
+	\end{subfigure}
+	\begin{subfigure}{.45\textwidth}
+		\includegraphics[width=1\textwidth]{graphics/1_K-vs-r_omegaDistr=normal_N=1000_1611599513.pdf}
+	\end{subfigure}
+	\caption{Alternative runs of $r_\infty(K)$}
+	\label{1alt}
+\end{figure}
 
 Instead, I hypothesise that the high-coherence observations in the range $1<K<1.5$ (which theory predicts should be very close to 0), are due to special sets of ICs. 
 Out of all possible ICs of individual oscillators, a small subset will favour convergence of all oscillators to a (partially) synchronised state. 
@@ -354,13 +651,18 @@ As N gets larger, it thus becomes progressively less likely that a sufficiently 
 % eitiher focus on probability of individual oscillators IC to be favouring, or the collectivel ICs probability to be favouring
 
 
+I tested this hunch by re-running the simulations a few times (ie. with different sets of ICs) and finding that the large deviations from the theoretical values are indeed uncommon. 
+In the alternative runs in figure \ref{1alt}, the simulated values are much closer to where they should be, indicating that in my initial run I must have had some 'bad luck' in the random draws for a few values of $K$.
+
+
+
 
 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\clearpage
+%\clearpage
 \subsection{$r(t)$ for $K = [1, 2,3]$} \label{r(t)}
 
 The simulation procedure for is the same as for \runK, with 2 exceptions:
@@ -396,39 +698,58 @@ These different trajectories are once again graphed: figure \ref{2}.
 
 
 
-\subsubsection{Results}
 
-\begin{figure}[H]
+\subsubsection{Results\footnote{Out of curiosity, I added the cases for $K=1.6$ and $K=3$, those being very close to and far above the critical value, respectively.}}
+
+Of note in figure \ref{2} is firstly that populations with $K<K_{crit} \approx 1.5985$ do not converge to coherence, while those with $K>K_{crit}$ do. 
+In this first sense, it is in agreement with theory. 
+And when convergence happens, it happens quickly, before $t = 10$.
+
+\begin{figure}[h]
 	\centering
-	\includegraphics[width=0.9\textwidth]{graphics/2_t-vs-r_omegaDistr=normal_N=1000_1611577412.pdf}
+	\includegraphics[width=0.9\textwidth]{graphics/2_t-vs-r_omegaDistr=normal_N=1000_1611744007.pdf}
 	\caption{$r(t)$ over time for 3 different values of $K$}
 	\label{2}
 \end{figure}
 
 
-Of note is firstly that populations with $K<K_{crit} \approx 1.5985$ do not converge to coherence, while those with $K>K_{crit}$ do. 
-In this first sense, it is in agreement with theory. 
-%
-The second noticeable feature is that when convergence happens, it happens quickly, before $t = 10$.
-% 
-Thirdly, the consistency equation predicts essentially three ranges of $K$ with distinguishable features, as we can see in figure \ref{1}.
-In the first region $0<K<1.5$ $r_\infty$ stays glued to zero. 
+\graph
+Next, figure \ref{2} confirms theory in the sense that the simulated points in figure \ref{1} are a good representation of the system and not partial to large random fluctuations (which would make the simulated points in the diagram more arbitrary).
+The results of this section thus re-affirm the results in section \ref{1results}. 
+The argument is as follows.
+
+The consistency equation predicts essentially three ranges of $K$ with distinguishable features, as we can see in figure \ref{1}.
+In the first region $0<K<1.5$, $r_\infty$ stays glued to zero. 
 Afterwards, it predicts a sudden, almost discontinuous jump between $K=1.5$ and $K=2$. 
 From $K=2$ onwards, the functional form is logarithmic (or, more approximately, linear).
 The aforementioned jump does not carry $r$ all the way to $r=1$ but only to $r\approx 0.7$ -- there is some way for it to still increase. 
 In this region, $r$ continues to increase but at a slowing pace. 
-In this sense, the $r(t)$ graph confirms the theory as well, as $r$ stabilises at different values depending on $K$. 
-And it does not fluctuate around these values values a lot. 
+
+In this sense, the $r(t)$ graph confirms the theory as well, as all runs with $K>K_{crit}$ stabilise at their own, distinct level of $r$ -- they do not jump between totally synchronised and totally unsynchronised.
 We can therefore say that with some confidence that the values in the $r(K)$ diagram are indeed indicative of the \textit{limiting} $r_\infty(K)$. 
-Had there benn a lot of variation around the 'idealised' $r_\infty$ the values we see in the $r(K)$ graph could have consisted merely of random points from within that range of variation. 
+Had there been a lot of variation around the 'idealised' $r_\infty$ the values we see in the $r(K)$ graph could have consisted merely of random points from within that range of variation. 
 Instead we see that once converged, the coherence of a system does not vary greatly and the points in $r(K)$ are accurate representations of the system. 
-This is good for the regions in which the simulated $r_\infty$ track the theorical closely, and bad for regions where they do not. 
+The alternative run in figure \ref{2alt} somewhat confirms this:
+The system with $K=1.6$ did not manage to synchronise this time, but instead of oscillating between very high $r$ and low $r$, it stays in the lower region.
+
+This is good for the regions in which the simulated $r_\infty$ track the theoretical closely, and bad for regions where they do not. 
 However, the argument about unlikely coincidences of ICs being the culprit resolves this problem. 
 
+\graph
+Lastly, the theoretical results from section \ref{stability} on stability are thereby also confirmed: 
+once the system has reached a stationary point, it will tend to return to this point and not deviate from it greatly. 
+The lines of systems that converged are horizontal and approximately straight, with only small variations -- the stationary points are stable.
+The higher the coupling coefficient $K$, the stronger is that stability and the lower is the variation.
 
 
 
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{graphics/2_t-vs-r_omegaDistr=normal_N=1000_1611746987.pdf}
+	\caption{$r(t)$ over time for 3 different values of $K$}
+	\label{2alt}
+\end{figure}
 
 
 
@@ -443,41 +764,61 @@ However, the argument about unlikely coincidences of ICs being the culprit resol
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \clearpage
-\FloatBarrier
+%\FloatBarrier
 \bigskip\noindent
-{\Large\textbf{Omegas uniformly distributed}}
-\addcontentsline{toc}{subsection}{\\\textbf{Omegas uniformly distributed}}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{$r_{\infty}(K)$}
+{\Large\textit{Uniformly distributed $\omega$}}
+\addcontentsline{toc}{subsection}{\\\textbf{Uniformly distributed $\omega$}}
 
 
-\subsubsection{Program profile}
+
+\para{Program profile}
 The profile of the code for tasks 3, 4 and 5 can be seen in figure \ref{profile345}.
 %\begin{landscape}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=\textwidth]{graphics/profile345.pdf} % can also use angle = 90
+	\vspace{-15mm}
 	\caption{Profile of code for task 3, 4 and 5}
 	\label{profile345}
 \end{figure}
 %\end{landscape}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$r_{\infty}(K)$}
 
-\subsubsection{Results}
+It can firstly be observed that also the systems with a uniform distribution of $\omega$ exhibit criticality. 
+Different from the case of normal distribution of $\omega$, the criticality seems to be stronger. 
+The jump from mostly unsynchronised to mostly synchronised happens over a smaller range of $K$ and it happens more abruptly, going from $r(K=0.60) \approx 0.1$ to $r(K=0.65) \approx 0.8$.
+This represents a $\Delta r = 0.7$ within $\Delta K = 0.05$ against a $\Delta r = 0.6$ within $\Delta K = 0.5$ in the case of normally distributed $\omega$.
+
+Secondly, figures \ref{3zoomedout} and \ref{3-1} show that the critical point is lower for the uniform distribution ($K_{crit} \approx 0.6$) than for the normal distribution ($K_{crit} \approx 1.6$). 
+This indicates that a uniform distribution of natural frequencies favours convergence to a synchronised state even when oscillators are coupled much weaker. 
+This is mostly likely due to the fact that the given uniform distribution greatly restricts the range that any $\omega$ can take. 
+Now, $-\frac{1}{2} \leq \omega \leq \frac{1}{2}$ when before, it could routinely take values as high or low as $\pm 1$ (68\% of $\omega$ will lie in this range).
+A larger range of natural frequencies makes synchronisation harder. 
+Thus a stronger coupling force is required to make our normally-distributed system synchronise.%
+	\footnote{This is not true generally, however. It just so happens that the uniform distribution given to us is much narrower than the (Standard) normal distribution given to us.}
 
 \begin{figure}[h]
 	\centering
 	\begin{subfigure}{0.9\textwidth}
 		\includegraphics[width = \textwidth]{graphics/3_K-vs-r_omegaDistr=uniform_zoomed_N=2000_1611568972.pdf}
-		\caption{zoomed in}
+		\caption{}
 		\label{3zoomedin}
 	\end{subfigure}
-	\begin{subfigure}{0.9\textwidth}
-		\includegraphics[width = \textwidth]{graphics/3_K-vs-r_omegaDistr=uniform_N=2000_1611568972.pdf}
+	
+	\begin{subfigure}[t]{0.47\textwidth}
+		\includegraphics[height = 50mm]{graphics/3_K-vs-r_omegaDistr=uniform_N=2000_1611568972.pdf}
+		\caption{$r_\infty(K)$ for \textit{uniform} $\omega$-distribution}
 		\label{3zoomedout}
-		\caption{zoomed out, for better comparison with figure \ref{1}}
 	\end{subfigure}
-	\caption{$r_\infty(K)$ for different values of K, with a uniform distribution of $\omega$s}
+	\begin{subfigure}[t]{0.47\textwidth}
+		\includegraphics[height = 50mm]{graphics/1_K-vs-r_omegaDistr=normal_N=1000_1611593606.pdf}
+%		\vspace{1mm}
+		\caption{$r_\infty(K)$ for \textit{normal} $\omega$-distribution (figure \ref{1})}
+		\label{3-1}
+	\end{subfigure}
+	\caption{$r_\infty(K)$ for different values of K}
 	\label{3}
 \end{figure}
 
@@ -485,34 +826,18 @@ The profile of the code for tasks 3, 4 and 5 can be seen in figure \ref{profile3
 
 
 
-
-
-
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\clearpage
 \subsection{$r(t)$ for different initial conditions $\theta_0$}
 
 To run simulations repeatedly while keeping selected initial conditions the same, I implemented the following. 
 First, a 'reference' \oscpop object is initiated. 
-Then a loop begins in which a 'temporary' \oscpop objects (newly initialised with entirely random values) is created. 
-The desired initial conditions from the reference object are then written into the temporary object: here, the $\omega$s are kept, later the $\theta$s. 
+Then a loop begins in which a 'temporary' \oscpop objects is initialised with all new random values. 
+The desired initial conditions from the reference object are then written into the temporary object: here, the $\omega$ are kept, in section \ref{keepthetas} the $\theta$. 
 \code{runT()} is executed on the temporary object and the returned trajectory saved into another list-of-lists. 
 
 
 
-
-
-
-
-
-\subsubsection{Results}
-
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\textwidth]{graphics/4_t-vs-r_fixedOmegas_omegaDistr=uniform_N=2000_1611570486.pdf}
 	\caption{$r(t)$ over time for 10 different initial conditions of $\theta$}
@@ -524,23 +849,11 @@ The desired initial conditions from the reference object are then written into t
 
 
 
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\clearpage
-\subsection{$r(t)$ for different initial conditions $\omega_0$}
+\subsection{$r(t)$ for different initial conditions $\omega$}\label{keepthetas}
 
 
-
-
-
-
-\subsubsection{Results}
-
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\includegraphics[width=0.9\textwidth]{graphics/5_t-vs-r_fixedThetas_omegaDistr=uniform_N=2000_1611572031.pdf}
 	\caption{$r(t)$ over time for 10 different initial conditions of $\omega$}
@@ -551,9 +864,23 @@ The desired initial conditions from the reference object are then written into t
 
 
 
+\subsection{Interpretation}
 
+To my eye, the graphs in figures \ref{4} and \ref{5} look very similar. 
+They both converge very quickly --in less than 20 time periods-- since the given $K = 1$ is much larger than the required $K_{crit} \approx 0.6$. 
+They also converge to the same level, $r_\infty \approx 0.95$. 
 
+If I squint, I can potentially see a greater variance around the stationary point in the case of changing the $\omega$ (figure \ref{5}) as opposed to changing the $\theta_0$. 
+This could be interpreted as the initial conditions in $\omega$ having a greater impact on the future of the system than the $\theta_0$. 
+But this visible effect is very small and most likely random noise. 
 
+\graph
+The phenomenon to be explained is then why the two cases do \textit{not} differ significantly. 
+As we saw in the general juxtaposition of normally and uniformly distributed $\omega$, it seems that $\omega$ as the defining/characteristic property of an oscillator \textit{can} have a profound impact on the behaviour of the system (namely, changing the criticality properties). 
+Thus it could be expected that when all $\omega$ are changed, this should have a larger effect, ie. cause larger deviations between the different runs, than changing merely the initial positions of the oscillators but leaving their 'characteristic property' $\omega$ the same.
+
+Ostensibly, this is not true. 
+My conclusion is therefore that \textit{qualitative} changes to the oscillators' properties (such as changing the \textit{type} of distribution) can cause the system to behaviour differently, but merely \textit{quantitative} changes in the same regime cannot.
 
 
 

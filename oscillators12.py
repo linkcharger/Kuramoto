@@ -292,22 +292,21 @@ plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% task 2: normal omegas, t-vs-r %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #%time
-
 N = int(1000  * m / 100)           # 1000
 T = 100             # 100
 dt = 0.01
-K_range = [1, 2, 3]
+K_range = [1, 1.6, 2, 3]
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]      
 
-rLists = [[]]
+rLists = {}
 
 for K in K_range:
     pop2 = OscPopulation('normal')
     rList = pop2.runT(K)
 
-    rLists.append(rList)
+    rLists[K] = rList
 
 
 
