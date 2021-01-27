@@ -18,7 +18,7 @@ if len(args) != 0:
     m = int(args[0])
 else:
     m = 100
-
+    #m = 1
 #####################################################################################################################
 
 
@@ -249,28 +249,16 @@ pop3 = OscPopulation('uniform')
 r_critList = pop3.runK() 
 
 
-#################################### graphing #################################### 
-plt.figure(figsize = (10,6))
-plt.title('System state diagram')
-plt.xlim(0, 4)
-plt.ylim(0, 1)
-plt.xlabel('coupling strength K')
-plt.ylabel('coherence r')
-
-plt.plot(K_range, r_critList, 'ko')
-filename = 'graphics/3_K-vs-r' + '_omegaDistr=' + pop3.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
-plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
-# plt.show()
 
 
 #################################### graphing #################################### 
 plt.figure(figsize = (10,6))
-plt.title('System state diagram')
+plt.title('Steady-state coherence r on the coupling strength K', fontsize='xx-large')
 plt.ylim(0, 1)
-plt.xlabel('coupling strength K')
-plt.ylabel('coherence r')
+plt.xlabel('K', fontsize=16)
+plt.ylabel('r', fontsize=16)
 
-plt.plot(K_range, r_critList, 'ko')
+plt.plot(K_range, r_critList, color='red', linewidth=2)
 filename = 'graphics/3_K-vs-r_' + 'omegaDistr=' + pop3.omegaDistr + '_zoomed' + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 # plt.show()
@@ -310,14 +298,14 @@ for run in range(runs):
 
 #################################### graphing ####################################
 plt.figure(figsize = (10,6))
-plt.title('Evolution of r')
+plt.title('Evolution of r(t)', fontsize='xx-large')
 plt.ylim(0,1)
-plt.xlabel('time t')
-plt.ylabel('coherence r')
+plt.xlabel('t', fontsize=16)
+plt.ylabel('r', fontsize=16)
 
 for run in range(runs):
     # for t in t_range: rLists[run][int(t/dt)] = 2 * rLists[run][int(t/dt)]
-    plt.plot(t_range, rLists[run])
+    plt.plot(t_range, rLists[run], linewidth=3)
 
 filename = 'graphics/4_t-vs-r' + '_fixedOmegas' + '_omegaDistr=' + fixedOmegaPop.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
@@ -364,13 +352,13 @@ for run in range(runs):
 
 #################################### graphing ####################################
 plt.figure(figsize = (10,6))
-plt.title('Evolution of r')
+plt.title('Evolution of r(t)', fontsize='xx-large')
 plt.ylim(0,1)
-plt.xlabel('time t')
-plt.ylabel('coherence r')
+plt.xlabel('t', fontsize=16)
+plt.ylabel('r', fontsize=16)
 
 for run in range(runs):
-    plt.plot(t_range, rLists[run])
+    plt.plot(t_range, rLists[run], linewidth=3)
 
 filename = 'graphics/5_t-vs-r' + '_fixedThetas' + '_omegaDistr=' + fixedThetaPop.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')

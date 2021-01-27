@@ -18,7 +18,7 @@ if len(args) != 0:
     m = int(args[0])
 else:
     m = 100
-
+   #m = 1
 #####################################################################################################################
 
 
@@ -240,7 +240,7 @@ def calc_r_integ(K):
 N = int(1000 * m / 100)            # 1000 
 T = 100             # 100
 dt = 0.01
-Kmax = 4
+Kmax = 5
 dk = 0.1
 
 numberOfTimes = int(T/dt)
@@ -271,18 +271,18 @@ for K in K_rangeInteg:
 
 #################################### graphing ####################################
 plt.figure(figsize = (10,6))
-plt.title('System state diagram')
-plt.xlim(0, 4)
+plt.title('Steady-state coherence r on the coupling strength K', fontsize='xx-large')
+plt.xlim(0, 5.1)
 plt.ylim(0, 1)
-plt.xlabel('coupling strength K')
-plt.ylabel('coherence r')
+plt.xlabel('K', fontsize=16)
+plt.ylabel('r', fontsize=16)
 
-plt.plot(K_range, rListSim, 'ko', label = 'simulated')
-plt.plot(K_rangeInteg, rListInteg, label = 'integrated')
-plt.legend()
+plt.plot(K_range, rListSim,  color='cyan', label = 'Simulation')
+plt.plot(K_rangeInteg, rListInteg, color='red', label = 'Numeral Integration')
+plt.legend(fontsize=16)
 filename = 'graphics/1_K-vs-r' + '_omegaDistr=' + pop1.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
-# plt.show()
+plt.show()
 
 
 
@@ -296,7 +296,7 @@ plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
 N = int(1000  * m / 100)           # 1000
 T = 100             # 100
 dt = 0.01
-K_range = [1, 2, 3]
+K_range = [1, 2]
 
 numberOfTimes = int(T/dt)
 t_range = [round(i * dt, 4) for i in range(numberOfTimes + 1)]      
@@ -315,17 +315,17 @@ for K in K_range:
 
 #################################### graphing ####################################
 plt.figure(figsize = (10,6))
-plt.title('Evolution of r')
+plt.title('Evolution of r(t)', fontsize='xx-large')
 plt.ylim(0, 1)
-plt.xlabel('time t')
-plt.ylabel('coherence r')
+plt.xlabel('t', fontsize=16)
+plt.ylabel('r', fontsize=16)
 
 for K in K_range:
     plt.plot(t_range, rLists[K], label = 'K = ' + str(K))
-plt.legend()
+plt.legend(fontsize=16)
 filename = 'graphics/2_t-vs-r' + '_omegaDistr=' + pop2.omegaDistr + '_N=' + str(N) + '_' + str(int(time.time())) + '.pdf'
 plt.savefig(filename, dpi = 200, bbox_inches = 'tight')
-# plt.show()
+plt.show()
 
 
 
